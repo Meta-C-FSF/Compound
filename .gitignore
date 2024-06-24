@@ -2,7 +2,7 @@
 *CMakeFiles/*
 *CMakeCache*
 cmake_install.cmake
-*[tT]est*
+test.sh
 *~
 gitwork
 work
@@ -13,11 +13,10 @@ todo_stack
 getReady.sh
 base_type.c
 sample
-<<<<<<< HEAD
 compile
-=======
->>>>>>> refs/remotes/master/master
 .vscode/
 todo
 vsc*
 libcompound.so
+ccwarn
+genwarn.sh
