@@ -2,10 +2,6 @@
 # define COMPOUND_UTILS_H
 
 # include <time.h>
-# include <string.h>
-# include <stdlib.h>
-# include <math.h>
-# include <stdint.h>
 
 # include <Compound/common.h>
 # include <Compound/const.h>
