@@ -20,3 +20,4 @@ libcompound.so
 ccwarn
 CMakeLists_default.txt
 genwarn.sh
+test.sh

@@ -1,6 +1,8 @@
 #ifndef COMPOUND_UTILS_H
 # define COMPOUND_UTILS_H
 
+# include <math.h>
+# include <string.h>
 # include <time.h>
 
 # include <Compound/common.h>
