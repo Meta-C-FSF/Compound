@@ -52,5 +52,5 @@ chmod +x ./the_file_lacks_of_permission_to_execute_and_to_be_honest_i_dont_know_
 For now, we wish more of you to put up issues so that the problems can be spotted.
 
 > *NOT SO FAST*  
-> *If you got a problem, try to look up for similar or same issues that had been put up already, *  
+> *If you got a problem, try to look up for similar or same issues that had been put up already,*  
 > *'cause you don't want to have your reply simply written something like "ah yeah yeah, we've been through that sometime earlier".*
