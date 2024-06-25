@@ -19,4 +19,8 @@ todo
 vsc*
 libcompound.so
 ccwarn
+<<<<<<< HEAD
+=======
+CMakeLists_default.txt
+>>>>>>> 010300157e252e47218c74f256bca0ea12b7baa3
 genwarn.sh

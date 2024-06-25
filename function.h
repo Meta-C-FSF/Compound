@@ -7,11 +7,8 @@ typedef Var Type;
 
 typedef struct {
   attr(registered 1)  Type type;
-  
-  attr(nullity false)  String identity;
-  
-  attr(alignwith 1)
-  attr(optional true)  Type value;
+  attr(nullity false)  String identity;  
+  attr(alignwith 1; optional true)  Type value;
 } Parameter;
 
 typedef void * Block;
