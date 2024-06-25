@@ -5,16 +5,16 @@ project (Compound)
 set(CMAKE_C_COMPILER  gcc)
 
 set(WALL  -Waddress
-          -Warray-compare
+          # -Warray-compare
           -Warray-parameter=2
           -Wbool-compare
           -Wbool-operation
           -Wchar-subscripts
           -Wcomment
           -Wdangling-else
-          -Wdangling-pointer=2
+          # -Wdangling-pointer=2
           -Wenum-compare
-          -Wenum-int-mismatch
+          # -Wenum-int-mismatch
           -Wformat=1
           -Wformat-contains-nul
           -Wformat-diag
@@ -26,7 +26,7 @@ set(WALL  -Waddress
           -Wimplicit
           -Wimplicit-function-declaration
           -Wimplicit-int
-          -Winfinite-recursion
+          # -Winfinite-recursion
           -Wint-in-bool-context
           -Wlogical-not-parentheses
           -Wmain
@@ -65,7 +65,7 @@ set(WALL  -Waddress
           -Wunused-local-typedefs
           -Wunused-value
           -Wunused-variable
-          -Wuse-after-free=2
+          # -Wuse-after-free=2
           -Wvla-parameter
           -Wvolatile-register-var
           -Wzero-length-bounds
