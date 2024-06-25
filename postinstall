@@ -1,0 +1,6 @@
+#!/bin/sh
+
+# Install Compound library.
+echo "Installing libcompound:"
+cp -v "libcompound.so" "/usr/lib"
+
