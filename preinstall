@@ -7,8 +7,7 @@ fi
 
 SRC="$PWD"
 DST=/usr/include/Compound
-PROJ=("Array" "Paper" "Pen" "Render" "Status" "Var" "MemMan" "Stack" "Utils"\
-      "String" "Object")
+set -- Array Paper Pen Render Status Var MemMan Stack Utils String Object
 
 # Create directory.
 if [ ! -d "$DST" ]; then
@@ -16,22 +15,15 @@ if [ ! -d "$DST" ]; then
 fi
 
 # Install project-like headers.
-PROJLEN=${#PROJ[*]}
-echo "======== $PROJLEN projects in total ========"
-
-idx=0
-while :; do
-  if [[ $idx -eq $PROJLEN || $idx -gt $PROJLEN ]]; then
-    break;
-  fi
+while :; do  
+  p="$1"
+  if [ -z "$1" ]; then break; fi
   
-  p="${PROJ[$idx]}"
-  
-  cd "$p"
-  echo "`date` >>> Installing $p"
+  cd "$p" || exit 1
+  echo "$(date) >>> Installing $p"
   cp -v include/*.h "$DST"
-  cd "$SRC"
-  ((idx++))
+  cd "$SRC" || exit 1
+  shift 1
   echo
 done
 
