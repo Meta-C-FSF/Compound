@@ -1,13 +1,9 @@
 #!/bin/sh
 
-if [ "`whoami`" != "root" ]; then
-  echo "The script require root privilege to execute properly."
+if [ "$(whoami)" != "root" ]; then
+  echo "The script require root privilege to execute properly.  Current identity: $(whoami)"
   exit 1
 fi
-
-# echo "Please ensure the current work directory is the home directory to the project Compound!
-# Press enter key to continue..."
-# read
 
 SRC="$PWD"
 DST=/usr/include/Compound
