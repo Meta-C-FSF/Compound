@@ -68,7 +68,7 @@ jobs:
 
     - name: PreInstall
       # Perform pre-installation.
-      run: ./preinstall
+      run: sudo ./preinstall
 
     - name: Build
       # Build your program with the given configuration. Note that --config is needed because the default Windows generator is a multi-config generator (Visual Studio generator).
@@ -76,7 +76,7 @@ jobs:
 
     - name: PostInstall
       # Perform post-installation.
-      run: ./postinstall
+      run: sudo ./postinstall
 
     - name: Test
       working-directory: ${{ steps.strings.outputs.build-output-dir }}
