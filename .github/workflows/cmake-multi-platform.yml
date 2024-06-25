@@ -6,9 +6,9 @@ on:
   schedule:
   - cron: "0 2 * * 1-5"
   push:
-    branches: [ "master" ]
+    branches: [ "github_action_test" ]
   pull_request:
-    branches: [ "master" ]
+    branches: [ "github_action_test" ]
 
 jobs:
   build:
