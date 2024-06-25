@@ -14,6 +14,11 @@ DST=/usr/include/Compound
 PROJ=("Array" "Paper" "Pen" "Render" "Status" "Var" "MemMan" "Stack" "Utils"\
       "String" "Object")
 
+# Create directory.
+if [ ! -d "$DST" ]; then
+  mkdir -pv "$DST"
+fi
+
 PROJLEN=${#PROJ[*]}
 echo "======== $PROJLEN projects in total ========"
 
