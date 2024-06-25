@@ -76,7 +76,7 @@ typedef struct _Status {
 # define LOCATION_LITERALISE_FORMAT  "at %s:%d, in function `%s\'"
 
 # define STATUS_LITERALISE_FORMAT \
-    "%s:  \"%s\"\n\tpredecessor=<%s> value=(%d) characteristic=[%d]\n\t%s\n"
+    "%s:  \"%s\"\n\tpredecessor=<%s> value=(%d) characteristic=(%d)\n\t%s\n"
 
 typedef enum {
   REPORT_SENDING_PRIORITY_ALL = 0,  // Highest level; least value.
@@ -420,7 +420,10 @@ static inline void PrintStatusDump(Status s)
 
   /* Output by iterating. */
   for (register int i = 0; i < dump_len; i++) {
+    /* Print out indexer. */
+    (void)printf("\e[1m[%d/%d]\e[0m", (dump_len - i), dump_len);
     
+    /* Print dumped status. */
     unsure(PrintStatus(dump[i]), !_.value, {
       (void)fprintf(stderr, "Unable to literalise.\n");
     })
