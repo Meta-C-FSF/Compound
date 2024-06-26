@@ -9,7 +9,7 @@ add_compile_options(-g -std=c99 -Wall -Wextra -D__DEBUG__)
 set(SHARED_SOURCE
     MemMan/src/memman.c
     Status/src/status.c
-    Utils/src/utils.c
+    Array/src/array.c
     Var/src/var.c
     catlog.c)
 
@@ -32,7 +32,6 @@ add_executable(CompoundTest
                test.c
                MemMan/src/memman.c
                Status/src/status.c
-               Utils/src/utils.c
                Array/src/array.c
                Var/src/var.c
                catlog.c)

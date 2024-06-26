@@ -21,6 +21,38 @@ void __DESTRUCT__() {}
 
 Status Main(void)
 {
+  const int len = 8;
+  
+  int iarr[] = {
+    1, 2, 4, 8, 16, 32, 64, 128
+  };
+  
+  Array arr;
+  fails(Array_Create(&arr, len, sizeof(__typeof__(iarr[0]))),
+    "Failed to create an array instance.");
+  
+  /* Array member assignments with iarr. */
+  for (register int i = 0; i < arr.len; i++) {
+    arr.members[i].addr = &iarr[i];
+  }
+  
+  for (register int i = 0; i < arr.len; i++) {
+    (void)printf("%d\n", i);
+    
+    for (register int j = 0; j < *(int *)arr.members[i].addr; j++) {
+      (void)printf("#");
+    }
+    
+    (void)printf("\n");
+  }
+  
+  // Array_Delete(&arr);
+  
+  return apply(NormalStatus);
+}
+
+Status MainStatus(void)
+{
   // Memory mem1;
   // seek(Memory_Create(&mem1, INT64_MAX), {
   //   print_status(_);
@@ -453,5 +485,11 @@ Status Main(void)
 
 int main(void)
 {
-  return Main().value;
+  int rtn = 0;
+  notok(Main(), {
+    rtn = _.value;
+    PrintStatusDump(_);
+  })
+  
+  return rtn;
 }
