@@ -165,14 +165,6 @@ DEFSTATUS(UnavailableObject, 1,
   "An unavailable object was presented.",
   STATUS_ERROR, &ErrorStatus);
 
-DEFSTATUS(InstanceStillAlive, 1,
-  "Given instance was yet alive.",
-  STATUS_ERROR, &ErrorStatus);
-
-DEFSTATUS(InstanceNotAlive, 1,
-  "Given instance for reallocation was not alive.",
-  STATUS_ERROR, &ErrorStatus);
-
 DEFSTATUS(InvalidParameter, 1,
   "An invalid parameter was presented.",
   STATUS_ERROR, &InvalidObject);
@@ -189,9 +181,25 @@ DEFSTATUS(IntegerOverFlow, 1,
   "An integer had overflowed.",
   STATUS_ERROR, &ArithmeticError);
 
+DEFSTATUS(InvalidOperation, 1,
+  "An invalid operation was detected.",
+  STATUS_ERROR, &ErrorStatus);
+
 DEFSTATUS(RuntimeError, 1,
   "A runtime error occurred.",
   STATUS_ERROR, &ErrorStatus);
+
+DEFSTATUS(InstanceStillAlive, 1,
+  "Given instance was yet alive.",
+  STATUS_ERROR, &RuntimeError);
+
+DEFSTATUS(InstanceNotAlive, 1,
+  "Given instance for reallocation was not alive.",
+  STATUS_ERROR, &RuntimeError);
+
+DEFSTATUS(InvalidOperationBetweenAliveAndNonAlive, 1,
+  "Given two instances were incompatible with each other for any operation.",
+  STATUS_ERROR, &InvalidOperation);
 
 DEFSTATUS(InstanceCreatingFailure, 1,
   "Cannot create the instance.",

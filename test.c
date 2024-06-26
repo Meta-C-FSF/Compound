@@ -1,3 +1,4 @@
+#include "Status/include/status.h"
 #include <Compound/array.h>
 #include <Compound/catlog.h>
 #include <Compound/common.h>
@@ -20,6 +21,52 @@ __attribute__((destructor))
 void __DESTRUCT__() {}
 
 Status Main(void)
+{
+  Array arr;
+  fail(Array_Create(&arr, 8, sizeof(int)));
+  
+  for (register int i = 0; i < arr.len; i++) {
+    Var current;
+
+    // fails(Var_Create(&current, arr.members[0].size),
+    //   "Failed to create Var current.");
+
+    state(!current.alive || !arr.members[i].alive,
+      apply(InvalidOperationBetweenAliveAndNonAlive));
+    assign(current, arr.members[i], int);
+
+    char buff[LITERALISATION_LENGTH_MAXIMUM] = EMPTY;
+    unsure(Var_Literalise(&current, buff), !_.value, {
+      return annot(_, "Failed to literalise Var current.");
+    })
+    
+    (void)printf("%s\n", buff);
+    
+    // Var_Delete(&current);
+  }
+  
+  cat("Get:");
+  Var get = EMPTY;
+  
+  fails(Var_Create(&get, arr.members[4].size), "Failed to create Var \"get\".");
+
+  state(!get.alive || !arr.members[4].alive,
+    apply(InvalidOperationBetweenAliveAndNonAlive));
+  assign(get, arr.members[4], int);
+  
+  char buff[LITERALISATION_LENGTH_MAXIMUM] = EMPTY;
+  unsure(Var_Literalise(&get, buff), !_.value, {
+    return annot(_, "Failed to literalise Var current.");
+  })
+  
+  Var_Delete(&get);
+  
+  // Array_Delete(&arr);
+  
+  return apply(NormalStatus);
+}
+
+Status MainArrayCreateAndDeleteWithTraditionalMemberAccessing(void)
 {
   // const int len = 8;
   

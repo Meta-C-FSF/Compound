@@ -6,6 +6,13 @@
 
 # define EMPTY  {0}
 
+/*
+   PLEASE BE NOTICE:
+   MAGIC MACRO CANNOT USE "APPLY" AT RETURNING.
+   IT SHOULD ALWAYS RETURN THE LOCATION INDICATOR WHERE
+   IT CAME FROM.
+*/
+
 /* Get the literal. */
 # define nameof(obj)  #obj
 
@@ -37,10 +44,10 @@
 # define notok(s, b)  { Status _ = s;  if (!StatusUtils_IsOkay(_))  b }
 
 /* Return e when passing a failing e commented with c. */
-# define fails(e, c)  { notok(e, return apply(annot(_, c));) }
+# define fails(e, c)  { notok(e, return annot(_, c);) }
 
 /* Return e when passing a failing e. */
-# define fail(e)  { notok(e, return apply(_);) }
+# define fail(e)  { notok(e, return _;) }
 
 /* Return v when passing a failing e. */
 # define vfail(e, v)  { notok(e, return v;) }
@@ -63,6 +70,10 @@
 
 /* Cast Var "var" into builtin type in C specified with "type". */
 # define cast(var, type)  (*(type *)var.addr)
+
+/* Assign var with value under type "type".
+   REQUIRE BOTH VAR AND VALUE TO BE ALIVE. */
+# define assign(var, value, type)  { cast(var, type) = cast(value, type); }
 
 // # define lambda(param, body, capfmt, ...)  {\
 //   /* Duplicate everything from cap. */\

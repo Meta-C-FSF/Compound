@@ -91,7 +91,7 @@ Status Array_CopyOf(Array *inst, Array *other)
     /* Release the array inst. */
     free(inst->members);
     
-    return errstat;
+    return apply(errstat);
   }
   
   /* Assign rest of the struct members. */
@@ -115,9 +115,37 @@ void   Array_Delete(Array *inst)
   inst->len = 0;
 }
 
-Status Array_GetIdx(Array *inst, Var *store, int index);
+// Status Array_GetIdx(Array *inst, Var *store, int index)
+// {
+//   nonull(inst, apply(UnavailableInstance));
+//   nonull(store, apply(annot(UnavailableParameter,
+//     "Given store was unavailable.")));
+//   state(!store->alive, apply(annot(InstanceNotAlive,
+//     "Cannot store into a non-alive var.")));
+//   state(index >= inst->len || index < 0, apply(ArrayIndexOutOfBound));
+  
+//   // *store = inst->members[index];
+//   store->addr = inst->members[index].addr;
+//   store->size = inst->members[index].size;
+  
+//   return apply(NormalStatus);
+// }
 
-Status Array_SetIdx(Array *inst, Var *source, int index);
+// Status Array_SetIdx(Array *inst, Var *source, int index)
+// {
+//   nonull(inst, apply(UnavailableInstance));
+//   nonull(source, apply(annot(UnavailableParameter,
+//     "Given store was unavailable.")));
+//   state(!source->alive, apply(annot(InstanceNotAlive,
+//     "Cannot assign with a non-alive var.")));
+//   state(index >= inst->len || index < 0, apply(ArrayIndexOutOfBound));
+  
+//   // inst->members[index] = *source;
+//   inst->members[index].addr = source->addr;
+//   inst->members[index].size = source->size;
+  
+//   return apply(NormalStatus);
+// }
 
 bool   Array_Equals(Array *arr1, Array *arr2);
 

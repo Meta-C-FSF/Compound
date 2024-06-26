@@ -15,8 +15,8 @@ DEFSTATUS(InvalidArrayLength, 1, "Given length is invalid.", STATUS_ERROR, &Erro
 Status Array_Create(Array *inst, int len, size_t size);
 Status Array_CopyOf(Array *inst, Array *other);
 void   Array_Delete(Array *inst);
-Status Array_GetIdx(Array *inst, Var *store, int index);
-Status Array_SetIdx(Array *inst, Var *source, int index);
+// Status Array_GetIdx(Array *inst, Var *store, int index);
+// Status Array_SetIdx(Array *inst, Var *source, int index);
 bool   Array_Equals(Array *arr1, Array *arr2);
 
 Status ArrayUtils_Insert(Array *inst, Var *item, int index);
