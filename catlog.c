@@ -99,7 +99,7 @@ Status CatlogSender_Send(CatlogSender *inst)
 }
 
 Status CatlogUtils_OpenFile(FILE **fileptr, const char *filepath,
-                            const char const *restrict mode)
+                            const char *restrict mode)
 {
   /* Skip unavailable instances and parameters. */
   nonull(fileptr, apply(UnavailableBuffer));

@@ -2,7 +2,7 @@ cmake_minimum_required (VERSION 3.5)
 
 project (Compound)
 
-set(CMAKE_C_COMPILER  gcc)
+set(CMAKE_C_COMPILER  clang)
 
 add_compile_options(-g -std=c99 -Wall -Wextra -D__DEBUG__)
 
@@ -33,4 +33,6 @@ add_executable(CompoundTest
                MemMan/src/memman.c
                Status/src/status.c
                Utils/src/utils.c
+               Array/src/array.c
+               Var/src/var.c
                catlog.c)

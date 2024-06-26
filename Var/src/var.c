@@ -47,9 +47,10 @@ Status Var_CopyOf(Var *inst, Var *other)
 
 void Var_Delete(Var *inst)
 {
-  svoid(!inst);
+  svoid(!inst || !inst->alive);
   
   free(inst->addr);
+  inst->alive = false;
   inst->addr = NULL;
   inst->size = 0;
 }

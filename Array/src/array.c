@@ -3,155 +3,146 @@
 
 Status Array_Create(Array *inst, int len, size_t size)
 {
-  /* Skip unavailable inst and invalid param. */
-  nonull(inst, apply(UnavailableInstance));
-  state((len < 0), apply(InvalidArrayLength));
-  solve((!len), { inst->len = 0; inst->members = NULL; return apply(NormalStatus); })
+  /* Skip the living instances. */
+  state(inst && inst->alive, apply(InstanceStillAlive));
   
-  inst->len = len;
-  inst->members = calloc(len, sizeof(Var));
+  /* Allocate for members from the inst. */
+  state(!(inst->members = calloc(len, sizeof(Var))), apply(InsufficientMemory));
+  
+  /* Create for each item from members. */
   int erridx = -1;
+  Status errstat = EMPTY;
   for (register int i = 0; i < len; i++) {
-    // TODO(william): Throw InsufficientMemory at following line.
-    // DONE(william): ensure(Var_Create(&inst->members[i], size), "Failed to create a new var.");
-    
-    notok((Var_Create(&inst->members[i], size)), {
-#ifdef __DEBUG__
-      cat("Var_Create failed!\n")
-#endif
+    notok(Var_Create(&inst->members[i], size), {
       erridx = i;
+      errstat = apply(_);
       break;
-    } else {
-#ifdef __DEBUG__
-      cat("Var_Create success!\n")
-#endif
     })
   }
-
-  /* Review on erridx.  Release data that allocated. */
-  if (erridx != -1) {
-    for (register int i = erridx; i >= 0; i--) {      
+  
+  /* Got problem during allocations. */
+  if (erridx >= 0) {
+    /* Release members allocated backwardly. */
+    for (register int i = erridx - 1; i >= 0; i--) {
       Var_Delete(&inst->members[i]);
-#ifdef __DEBUG__
-      cat("Deleted var from InsufficientMemory from Array_Create!")
-#endif
     }
     
-    /* Release array itself. */
+    /* Release the array inst. */
     free(inst->members);
     
-    return apply(InsufficientMemory);
+    return errstat;
   }
-
+  
+  /* Assign rest of the struct members. */
+  inst->len = len;
+  inst->alive = true;
+  
   return apply(NormalStatus);
 }
 
 Status Array_CopyOf(Array *inst, Array *other)
 {
-  // /* Skip unavailable inst and invalid param. */
-  // nonull(inst, apply(UnavailableInstance));
-  // nonull(other, error(InvalidParameter, "Given other was unavailable."));
+  /* Skip unavailble parameters. */
+  nonull(other,
+    apply(annot(UnavailableInstance,
+      "Given object for copying to inst was unavailable.")));
   
-  // /* Assign value for len. */
-  // inst->len = other->len;
+  /* Skip invalid parameters and instances. */
+  state(inst && inst->alive,
+    apply(annot(InstanceStillAlive,
+      "Given inst for being copied was still alive.")));
   
-  // if (inst->members == NULL)  return apply(NormalStatus);
-  // match(RuntimeError, Array_Create(inst, other->len), "Failed on recreating "
-  //                                                     "array.");
+  state(!other->alive,
+    apply(annot(InstanceNotAlive,
+      "Given object for copying to inst was not alive.")));
   
-  // /* Copy and assign for each member from other to inst. */
-  // for (register int i = 0; i < inst->len; i++) {
-  //   inst[i] = other[i];
-  // }
+  state(!other->len,
+    apply(annot(InvalidArrayLength,
+      "Given object for copying to inst has length of ZERO.")));
   
-  // return apply(NormalStatus);
+  /* Allocate for members from the inst. */
+  state(!(inst->members = calloc(other->len, sizeof(Var))),
+    apply(InsufficientMemory));
   
+  /* Create for each item from members. */
+  int erridx = -1;
+  Status errstat = EMPTY;
+  for (register int i = 0; i < other->len; i++) {
+    notok(Var_Create(&inst->members[i], other->members[0].size), {
+      erridx = i;
+      errstat = apply(_);
+      break;
+    })
+    
+    notok(Var_CopyOf(&inst->members[i], &other->members[i]), {
+      erridx = i;
+      errstat = apply(_);
+      break;
+    })
+  }
   
-  
-  
-  /*
-    if (other == NULL)  return 1;
-
-    String_Create(inst, other->len);
-    for (register int i = 0; i < other->len; i++) {
-        inst->arr[i] = other->arr[i];
+  /* Got problem during allocations. */
+  if (erridx >= 0) {
+    /* Release members allocated backwardly. */
+    for (register int i = erridx - 1; i >= 0; i--) {
+      Var_Delete(&inst->members[i]);
     }
     
-    return 0;
+    /* Release the array inst. */
+    free(inst->members);
+    
+    return errstat;
+  }
   
+  /* Assign rest of the struct members. */
+  inst->len = other->len;
+  inst->alive = true;
   
-  */
+  return apply(NormalStatus);
 }
 
-Status Array_Delete(Array *inst)
+void   Array_Delete(Array *inst)
 {
-  /* Skip unavailable inst and invalid param. */
-  nonull(inst, apply(UnavailableInstance));
-  solve((inst->members == NULL), return apply(NormalStatus));
+  svoid(!inst || !inst->alive);
   
-  inst->len = 0;
+  for (register int i = 0; i < inst->len; i++) {
+    Var_Delete(&inst->members[i]);
+  }
+  
   free(inst->members);
-  inst->members = NULL;
   
-  return apply(NormalStatus);
+  inst->alive = false;
+  inst->len = 0;
 }
 
-Status Array_GetIdx(Array *inst, Var *store, int index)
-{
-  /* Skip unavailable inst and invalid param. */
-  nonull(inst, apply(UnavailableInstance));
-  nonull(store,
-    apply(error(InvalidParameter, "Given reference to store was unavailable.")));
-  state((index < 0 || index >= inst->len), apply(ArrayIndexOutOfBound));
-  
-  *store = inst->members[index];
-  
-  return apply(NormalStatus);
-}
+Status Array_GetIdx(Array *inst, Var *store, int index);
 
-Status Array_SetIdx(Array *inst, Var *source, int index)
-{
-  /* Skip unavailable inst and invalid param. */
-  nonull(inst, apply(UnavailableInstance));
-  nonull(source,
-    apply(
-      error(InvalidParameter, "Given reference to source was unavailable.")));
-  state((index < 0 || index >= inst->len), apply(ArrayIndexOutOfBound));
-  
-  inst->members[index] = *source;
-  
-  return apply(NormalStatus);  
-}
+Status Array_SetIdx(Array *inst, Var *source, int index);
 
-bool Array_Equals(Array *a, Array *b)
-{
-  /* Skip unavailable inst and invalid param. */
-  state((a == NULL || b == NULL), false);
-  state((a->len != b->len), false);
-  
-  for (register int i = 0; i < a->len; i++) {
-    if (!Var_Equals(&a->members[i], &b->members[i])) {
-      return false;
-    }
-  }
-  
-  return true;
-}
+bool   Array_Equals(Array *arr1, Array *arr2);
 
 
+Status ArrayUtils_Insert(Array *inst, Var *item, int index);
 
-Status ArrayUtils_Fill(Array *inst, Var *elem, int off, int len)
-{
-  nonull(inst, apply(UnavailableInstance));
-  nonull(elem,
-    apply(error(InvalidParameter, "Given reference to elem was unavailable.")));
-  state((off + len > inst->len) || (off < 0) || (len < 0),
-    apply(ArrayIndexOutOfBound));
-  
-  /* Copy elem into each specified members from inst with off and len. */
-  for (register int i = off; i < (off + len); i++) {
-    inst->members[i] = *elem;
-  }
-  
-  return apply(NormalStatus);
-}
+Status ArrayUtils_InsertArray(Array *inst, Array *items, int index);
+
+Status ArrayUtils_Remove(Array *inst, int index);
+
+Status ArrayUtils_RemoveArray(Array *inst, int off, int len);
+
+Status ArrayUtils_Subarray(Array *inst, Array *store, int off, int len);
+
+Status ArrayUtils_Fill(Array *inst, Var *elem, int off, int len);
+
+Status ArrayUtils_Search(Array *inst, Var *item, int *store);
+
+Status ArrayUtils_SearchArray(Array *inst, Array *items, int *store);
+
+Status ArrayUtils_Split(Array *inst, Array *fore, Array *rear, int index);
+
+Status ArrayUtils_Revert(Array *inst);
+
+bool   ArrayUtils_IsEmpty(Array *inst);
+
+bool   ArrayUtils_IsBlank(Array *inst);
+

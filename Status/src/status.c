@@ -4,10 +4,6 @@ Status Location_Literalise(Location *inst, char *buff)
 {
   nonull(inst, apply(UnavailableInstance));
   nonull(buff, apply(UnavailableBuffer));
-  
-  /* Literalise line. */
-  char line_buff[LITERALISATION_LENGTH_MAXIMUM] = EMPTY;
-  Utils_LiteraliseInteger(inst->line, line_buff);
 
   where(
     snprintf(buff, LITERALISATION_LENGTH_MAXIMUM,
@@ -140,15 +136,6 @@ int StatusUtils_Depth(Status *stat)
   }
 
   return cnt;
-  
-  // Status *current = stat;  // Include this layer of Status.
-  // register int cnt;
-  // for (cnt = 0; (!StatusUtils_IsRecursive(*current)
-  //                && StatusUtils_HasPrev(*current)); cnt++) {
-  //   current = current->prev;
-  // }
-  
-  // return cnt;
 }
 
 // bool arguestarter_equal(ArgueStarter *inst1, ArgueStarter *inst2)

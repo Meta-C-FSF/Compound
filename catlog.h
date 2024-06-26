@@ -59,7 +59,7 @@ Status CatlogSender_CopyOf(CatlogSender *inst, CatlogSender *other);
 Status CatlogSender_Send(CatlogSender *inst);
 bool   CatlogSender_Equals(CatlogSender *inst, CatlogSender *other);
 Status CatlogUtils_OpenFile(FILE **fileptr, const char *filepath,
-                            const char const *restrict mode);
+                            const char *restrict mode);
 Status CatlogUtils_CloseFile(FILE **fileptr);
 
 #endif  /* COMPOUND_CATLOG_H */

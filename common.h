@@ -1,10 +1,6 @@
 #ifndef COMPOUND_COMMON_H
 # define COMPOUND_COMMON_H
 
-# ifdef __DEBUG__
-#  warning DEBUG IS ON
-# endif  /* __DEBUG__ */
-
 # include <stdlib.h>
 # include <stdbool.h>
 
@@ -42,6 +38,9 @@
 
 /* Return e when passing a failing e commented with c. */
 # define fails(e, c)  { notok(e, return apply(annot(_, c));) }
+
+/* Return e when passing a failing e. */
+# define fail(e)  { notok(e, return apply(_);) }
 
 /* Return v when passing a failing e. */
 # define vfail(e, v)  { notok(e, return v;) }
