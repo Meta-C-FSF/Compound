@@ -30,6 +30,6 @@ done
 # Install individual headers.
 cp -v "common.h" "const.h" "platform.h"\
       "name.h" "namescope.h" "type.h" "catlog.h"\
-      "attr.h" "registry.h" "class.h" "function.h" "$DST"
+      "attr.h" "registry.h" "class.h" "function.h" "report.h" "$DST"
 
 printf "\nDone\n"
