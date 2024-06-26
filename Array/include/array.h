@@ -4,8 +4,8 @@
 # include <Compound/var.h>
 
 typedef struct {
-  int len;
   Var *members;
+  int len;
   bool alive;
 } Array;
 
