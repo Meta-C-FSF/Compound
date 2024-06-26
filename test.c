@@ -53,7 +53,8 @@ Status Main(void)
   fail(Array_Create(&arr, 8, sizeof(long long)));
   
   for (register int i = 0; i < arr.len; i++) {
-    (void)printf("%d:\t%p\n", i, arr.members[i].addr);
+    cast(arr.members[i], long long) = INT64_MAX;
+    (void)printf("%lld\n", cast(arr.members[i], long long));
   }
   
   Array_Delete(&arr);

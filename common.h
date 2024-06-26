@@ -61,6 +61,9 @@
 /* Allows different macros using "_" nested with each other. */
 # define nest(v1, v2, b)  { clone(v1, v2) b }
 
+/* Cast Var "var" into builtin type in C specified with "type". */
+# define cast(var, type)  (*(type *)var.addr)
+
 // # define lambda(param, body, capfmt, ...)  {\
 //   /* Duplicate everything from cap. */\
 //   va_list ptr;\
