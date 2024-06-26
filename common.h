@@ -209,4 +209,8 @@ typedef bool _Bit;
 # define __ATTRIBUTABLE__
 # define attr(a)
 
+/* Useless in C, only for human to see.
+   Probably rewrite this in Classify. */
+# define throws(e)
+
 #endif /* COMPOUND_COMMON_H */

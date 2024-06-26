@@ -113,7 +113,6 @@ typedef struct _Status {
 Status Location_Literalise(Location *inst, char *buff);
 bool   Location_Equals(Location lc1, Location lc2);
 Status Status_Literalise(Status *inst, char *buff);
-Status Status_LiteraliseForReport(Status *inst, char *buff);
 bool   Status_Equal(Status *stat1, Status *stat2);
 // void   StatusUtils_Dump(Status *inst, Status **store, int idx);
 void   StatusUtils_Dump(Status *inst, Status *store);

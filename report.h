@@ -93,10 +93,6 @@ Status ReportSender_Send(ReportSender *inst, ReportTask task);
  * before throwing the report out. */
 // # define throw(report)  THROW(report, __HERE__)
 
-/* Useless in C, only for human to see.
-   Probably rewrite this in Classify. */
-# define throws(e)
-
 // ReportTaskID THROW(Report report, Location loc);
 // Report CATCH(ReportTaskID taskid, Status (*handler)());
 int HANDLER(void *report);

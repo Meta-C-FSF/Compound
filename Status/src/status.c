@@ -79,21 +79,6 @@ Status Status_Literalise(Status *inst, char *buff)
   });
 }
 
-Status Status_LiteraliseForReport(Status *inst, char *buff)
-{
-  /* Skip unavailable instance and invalid parameter. */
-  nonull(inst, apply(UnavailableInstance));
-  nonull(buff, apply(UnavailableBuffer));
-
-  where(
-    snprintf(buff, LITERALISATION_LENGTH_MAXIMUM, REPORT_LITERALISE_FORMAT_DETAIL,
-             strnil(inst->identity), strnil(inst->prev->identity),
-             inst->value, inst->characteristic, inst->loc.file, inst->loc.line,
-             inst->loc.func), {
-    return apply(value(TraditionalFunctionReturn, _));
-  });
-}
-
 bool StatusUtils_HasPrev(Status stat)
 {
   return (stat.prev != NULL);
@@ -174,65 +159,3 @@ int StatusUtils_Depth(Status *stat)
 //   return (inst1->argue_start == inst2->argue_start)
 //           || (inst1->external_param == inst2->external_param);
 // }
-
-ReportTaskID THROW(Report report, Location loc)
-{
-  // // /* Create new a instance of ReportSender. */
-  // // ReportSender sender;
-  // // ReportSender_Create(&sender, stderr);
-
-  // // /* Send message. */
-  // // /* Initialise sender's thread. */
-  // // thrd_t sending;
-  // // /* Skip on failing on creating thread. */
-  // // if (!thrd_create(&sending, starter, NULL)) {
-
-  // //   /* Conclude the session of sender. */
-  // //   report.status = REPORT_SENDING_TASK_STATUS_FINISHED,
-  // //   report.result = (ARGUE_RESULT_FINALISED | ARGUE_RESULT_NEGATIVE);
-
-  // //   sender.result = REPORT_SENDER_RESULT_FINISHED;
-  // //   sender.successful = false;
-
-  // //   return -1;
-  // // }
-
-  // // /* Perform sending. */
-  // // ReportSender_Send(&sender, NULL);
-
-  // /* Initialise sender. */
-  // ReportSender sender;
-  // /* Return with -1 when initialisation failed. */
-  // state(!(StatusUtils_IsOkay(ReportSender_Create(&sender, &report))), -1);
-  
-  // /* Inject location information.  Could be more elegant, though. */
-  // sender.report->status.loc = loc;
-  
-  // /* Send. */ /* Return -1 when failed on sending. */
-  // state(!StatusUtils_IsOkay(ReportSender_Send(&sender, HANDLER)), -1);
-  
-  return 0;
-}
-
-int HANDLER(void *report)
-{
-  // /* Throw UnableToThrowError when param is unavailable. */
-  // if (report == NULL) {
-  //   /* Create report on this. */
-  //   Report e;
-  //   Report_Create(
-  //     &e,
-  //     &error(UnableToThrowError, "Cannot perform throwing.  Aborted."),
-  //     stderr, nameof(DEFAULT_ARGUE_STARTER),
-  //     REPORT_SENDING_PRIORITY_FATAL);
-
-  //   /* Perform throwing. */
-  //   (void)throw(e); // Throw the report alone.
-  //   return 1;
-  // }
-
-  // (void)throw(*(Report *)report); // Lonely throw, no catch will company.
-  // return 0;
-  
-  return 0;
-}
