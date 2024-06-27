@@ -27,13 +27,12 @@ bool Status_Equal(Status *stat1, Status *stat2)
   state(stat1 == NULL || stat2 == NULL, false);
 
   return (
+    !strcmp(stat1->identity, stat2->identity) &&
     stat1->value == stat2->value &&
     !strcmp(stat1->description, stat2->description) &&
     stat1->characteristic == stat2->characteristic &&
     Location_Equal(&stat1->loc, &stat2->loc) &&
-    ((StatusUtils_HasPrev(*stat1) && StatusUtils_HasPrev(*stat2))
-            ? Status_Equal(stat1->prev, stat2->prev)
-            : true)
+    stat1->prev == stat2->prev
   );
 }
 
@@ -87,7 +86,8 @@ bool StatusUtils_IsOkay(Status stat)
 
 bool StatusUtils_IsRecursive(Status stat)
 {
-  return (stat.prev && stat.prev == &stat);
+  // return (stat.prev && stat.prev == stat.prev->prev);
+  return (stat.prev && Status_Equal(&stat, stat.prev));
 }
 
 void StatusUtils_Dump(Status *inst, Status *store)
@@ -100,26 +100,6 @@ void StatusUtils_Dump(Status *inst, Status *store)
   *store = *inst->prev;
 }
 
-// void StatusUtils_Dump(Status *inst, Status **store, int idx)
-// {
-//   /* Skip when having invalid inst, store or idx. */
-//   svoid(!inst || !store || idx < 0 || StatusUtils_IsRecursive(*inst));
-  
-//   // store[idx] = *inst;
-//   *store[idx] = (Status){
-//     .identity = inst->identity,
-//     .value = inst->value,
-//     .description = inst->description,
-//     .characteristic = inst->characteristic,
-//     .loc = inst->loc,
-//     .prev = inst->prev
-//   };
- 
-//   (void)printf("idx: %d\n", idx);
-  
-//   StatusUtils_Dump(inst->prev, store, (idx - 1));
-// }
-
 int StatusUtils_Depth(Status *stat)
 {
   /* Skip unavailable stat. */
@@ -131,6 +111,9 @@ int StatusUtils_Depth(Status *stat)
   Status current = *stat;
   /* Iterate to accumulate. */
   while (current.prev) {
+    /* Skip recursive status. */
+    if (StatusUtils_IsRecursive(current))  break;
+      
     current = *current.prev;
     cnt += 1;
   }

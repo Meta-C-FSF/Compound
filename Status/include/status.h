@@ -143,9 +143,9 @@ int    StatusUtils_Depth(Status *inst);
 
 // ---------------------ELEMENTARY-------------------------
 
-DEFSTATUS(UnknownStatus, -1, "An unknown status.", STATUS_UNKNOWN, NULL);
-DEFSTATUS(NormalStatus, 0, "A normal status.", STATUS_NORMAL, NULL);
-DEFSTATUS(ErrorStatus, 1, "An error status.", STATUS_ERROR, NULL);
+DEFSTATUS(UnknownStatus, -1, "An unknown status.", STATUS_UNKNOWN, &UnknownStatus);
+DEFSTATUS(NormalStatus, 0, "A normal status.", STATUS_NORMAL, &NormalStatus);
+DEFSTATUS(ErrorStatus, 1, "An error status.", STATUS_ERROR, &ErrorStatus);
 
 // ----------------------EXTENDED--------------------------
 
@@ -328,7 +328,15 @@ static inline Status PrintStatus(Status s)
 static inline void PrintStatusDump(Status s)
 {
   /* Create dump. */
+  /* Calculate depth for dumping. */
   const int dump_len = StatusUtils_Depth(&s);
+
+  /* Skip when "s" is either unavailable or is at the buttom of status stack. */
+  if (dump_len == -1) {
+    PrintStatus(s);
+    return;
+  }
+    
   Status dump[dump_len];
   Status current = s;
   dump[0] = current;  // Put self at leading.
@@ -336,6 +344,7 @@ static inline void PrintStatusDump(Status s)
     // StatusUtils_Dump will only access (storage) the prev.
     // It does not include this status itself.
     StatusUtils_Dump(&current, &dump[i]);
+    
     current = *current.prev;
   }
 
@@ -348,22 +357,6 @@ static inline void PrintStatusDump(Status s)
     unsure(PrintStatus(dump[i]), !_.value, {
       (void)fprintf(stderr, "Unable to literalise.\n");
     })
-    
-    // seek(PrintStatus(dump[i]), {  // Get returning status.
-
-    //   /* Handle TraditionalFunctionReturn. */
-    //   nest(_, __, unsure(__, !__.value, {  // No bytes were written to buffer.
-    //     (void)fprintf(stderr, "Unable to literalise.\n");
-    //     return;
-    //   }));
-
-    //   // Handle abnormal status.
-    //   nest(_, __, notok(__, {
-    //     /* Output the description as explanation. */
-    //     (void)fprintf(stderr, "%s\n", __.description);
-    //     return;
-    //   }));
-    // });
   }
 }
 

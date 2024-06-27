@@ -43,13 +43,13 @@
 /* Execute b whenever finds s is "NOT okay". */
 # define notok(s, b)  { Status _ = s;  if (!StatusUtils_IsOkay(_))  b }
 
-/* Return e when passing a failing e commented with c. */
-# define fails(e, c)  { notok(e, return annot(_, c);) }
-
 /* Return e when passing a failing e. */
 # define fail(e)  { notok(e, return _;) }
 
-/* Return v when passing a failing e. */
+/* Return e when passing a failing e commented with c. */
+# define fails(e, c)  { notok(e, return annot(_, c);) }
+
+/* Return value "v" when passing a failing e. */
 # define vfail(e, v)  { notok(e, return v;) }
 
 /* Execute b for handling UnknownStatus (TraditionalFunctionReturn). */
@@ -123,6 +123,7 @@
   .prev = (Status *)&p\
 })
 
+/* Create a new Status with v as its value. */
 # define value(e, v)  ((Status) {\
   .identity = e.identity,\
   .value = v,\
@@ -132,6 +133,17 @@
   .prev = (Status *)e.prev\
 })
 
+/* Change the characteristic of e. */
+# define shift(e, c)  ((Status) {\
+  .identity = e.identity,\
+  .value = e.value,\
+  .description = e.description,\
+  .characteristic = c,\
+  .loc = e.loc,\
+  .prev= (Status *)e.prev\
+})
+
+/* Apply a new location to e where this macro is called. */
 # define apply(e)  ((Status) {\
   .identity = e.identity,\
   .value = e.value,\
@@ -141,7 +153,7 @@
   .prev = (Status *)e.prev\
 })
 
-// Reannotate for e.
+/* Replace the description from e with c. */
 # define annot(e, c)  ((Status) {\
   .identity = e.identity,\
   .value = e.value,\

@@ -33,7 +33,10 @@ Status Memory_Reallocate(Memory *inst, size_t size)
   
   /* When failed on reallocating. */
   state(!(inst->addr = realloc(inst->addr, size)),
-    apply(error(InsufficientMemory, "Unsuccessful reallocation was received.")));
+    apply(error(InsufficientMemory, "Cannot successfully reallocate.")));
+
+  /* Update size from inst. */
+  inst->size = size;
 
   return apply(NormalStatus);
 }

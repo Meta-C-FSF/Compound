@@ -1,4 +1,3 @@
-#include "Status/include/status.h"
 #include <Compound/array.h>
 #include <Compound/catlog.h>
 #include <Compound/common.h>
@@ -14,13 +13,48 @@ Status func(void)
 
 __attribute__((constructor))
 void __CONSTRUCT__() {
-  cat("Hello, Compound!\n");
+  cat("Hello, Compound!");
 }
 
 __attribute__((destructor))
 void __DESTRUCT__() {}
 
 Status Main(void)
+{
+  Memory mem;
+  fail(Memory_Create(&mem, sizeof(double)));
+  
+  fail(Memory_Allocate(&mem));
+  
+  (void)printf("%p:%ld\n", mem.addr, mem.size);
+  
+  fail(Memory_Reallocate(&mem, sizeof(char)));
+
+  (void)printf("%p:%ld\n", mem.addr, mem.size);
+  
+  fail(Memory_Release(&mem));
+  
+  fail(Memory_Delete(&mem));
+  
+  return apply(NormalStatus);
+}
+
+int tfunc(void)
+{
+  vfail(apply(ErrorStatus), 1);
+  
+  return 0;
+}
+
+Status MainMacroFailsTest(void)
+{  
+  unsure(apply(value(TraditionalFunctionReturn, tfunc())), _.value,
+    nest(_, __, fails(shift(__, STATUS_ERROR), "Failed on execution from tfunc.")));
+  
+  return apply(NormalStatus);
+}
+
+Status MainArrayCreateAndDeleteWithModulatedMemberAccessing(void)
 {
   Array arr;
   fail(Array_Create(&arr, 8, sizeof(int)));
