@@ -1,3 +1,4 @@
+#include <Compound/status.h>
 #include <Compound/var.h>
 
 Status Var_Create(Var *inst, size_t size)
@@ -14,22 +15,6 @@ Status Var_Create(Var *inst, size_t size)
   return apply(NormalStatus);
 }
 
-// Status Var_Create(Var *inst, void *addr, size_t size, char *identity)
-// {
-//   /* Skip when inst is unavailable. */
-//   nonull(inst, apply(UnavailableInstance));
-//   /* Skip when identity is unavailable. */
-//   nonull(identity, NullPointerAccounted);
-//   /* Skip when identity does not pass the examine. */
-//   state(!VarUtils_IsIdentityLegal(identity), IllegalVarIdentity);
-    
-//   inst->addr = addr;
-//   inst->size = size;
-//   *inst->identity = *identity;
-  
-//   return apply(NormalStatus);
-// }
-
 Status Var_CopyOf(Var *inst, Var *other)
 {
   /* Skip when inst or other is unavailable. */
@@ -45,34 +30,17 @@ Status Var_CopyOf(Var *inst, Var *other)
   return apply(NormalStatus);
 }
 
-void Var_Delete(Var *inst)
+Status Var_Delete(Var *inst)
 {
-  svoid(!inst || !inst->alive);
+  nonull(!inst, apply(UnavailableInstance));
+  state(!inst->alive, apply(InstanceNotAlive));
   
   free(inst->addr);
   inst->alive = false;
   inst->addr = NULL;
   inst->size = 0;
-}
-
-// void Var_Delete(Var *inst)
-// {
-//   /* Skip when inst or inst->addr is unavailable. */
-//   svoid(!inst || inst->addr == NULL);
-
-//   inst->addr = NULL;
-//   inst->size = 0;
-//   *inst->identity = 0;
-// }
-
-void VarUtils_Swap(Var *v1, Var *v2)
-{
-  /* Skip when v1 or v2 is unavailable. */
-  svoid(!v1 || !v2);
   
-  Var v3 = *v1;
-  *v1 = *v2;
-  *v2 = v3;
+  return apply(NormalStatus);
 }
 
 Status Var_Literalise(Var *inst, char *buff)
@@ -96,32 +64,12 @@ bool Var_Equals(Var *a, Var *b)
   return (a->addr == b->addr && a->size == b->size);
 }
 
-// bool VarUtils_IsIdentityLegal(char *identity)
-// {
-//   /* Skip when identity is unavailable. */
-//   state(identity == NULL, false);
+void VarUtils_Swap(Var *v1, Var *v2)
+{
+  /* Skip when v1 or v2 is unavailable. */
+  svoid(!v1 || !v2);
   
-//   const int len = strlen(identity);
-  
-//   /* Skip when identity is empty. */
-//   state(len == 0, false);
-
-//   /* Skip when the first char is not within alphabet. */
-//   state(ATRANGE('a', 'z', identity[0])
-//         || ATRANGE('A', 'Z', identity[0]), false);
-  
-//   /* Skip when the length of identity is greater that VAR_IDENTITY_LENGTH. */
-//   state(len > VAR_IDENTITY_LENGTH, false);
-  
-//   /* Skip when identity has space and illegal characters in it. */
-//   const int illegal_len = strlen(VAR_IDENTITY_ILLEGAL_CHAR);
-//   for (register int i = 0; i < len; i++) {
-//     for (register int j = 0; j < illegal_len; j++) {
-//       if (identity[i] == VAR_IDENTITY_ILLEGAL_CHAR[j]) {
-//         return false;
-//       }
-//     }
-//   }
-  
-//   return true;
-// }
+  Var v3 = *v1;
+  *v1 = *v2;
+  *v2 = v3;
+}

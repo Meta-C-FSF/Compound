@@ -21,7 +21,34 @@ void __DESTRUCT__() {}
 
 Status Main(void)
 {
-  Memory mem;
+  
+  
+  return apply(NormalStatus);
+}
+
+Status MainArrayComparisonTest(void)
+{
+  Array arr1 = EMPTY;
+  fail(Array_Create(&arr1, 10, 10));
+  
+  Array arr2 = EMPTY;
+  fail(Array_Create(&arr2, 10, 10));
+  
+  if (Array_Equals(&arr1, &arr2)) {
+    cat("Equal!");
+  } else {
+    cat("Not equal!");
+  }
+  
+  Array_Delete(&arr2);
+  Array_Delete(&arr1);
+  
+  return apply(NormalStatus);
+}
+
+Status MainMemoryOperationTest(void)
+{
+  Memory mem = EMPTY;
   fail(Memory_Create(&mem, sizeof(double)));
   
   fail(Memory_Allocate(&mem));
@@ -56,11 +83,11 @@ Status MainMacroFailsTest(void)
 
 Status MainArrayCreateAndDeleteWithModulatedMemberAccessing(void)
 {
-  Array arr;
+  Array arr = EMPTY;
   fail(Array_Create(&arr, 8, sizeof(int)));
   
   for (register int i = 0; i < arr.len; i++) {
-    Var current;
+    Var current = EMPTY;
 
     // fails(Var_Create(&current, arr.members[0].size),
     //   "Failed to create Var current.");
@@ -130,7 +157,7 @@ Status MainArrayCreateAndDeleteWithTraditionalMemberAccessing(void)
   // // Array_Delete(&arr);
 
 
-  Array arr;
+  Array arr = EMPTY;
   fail(Array_Create(&arr, 8, sizeof(long long)));
   
   for (register int i = 0; i < arr.len; i++) {

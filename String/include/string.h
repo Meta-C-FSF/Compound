@@ -19,15 +19,13 @@ typedef struct {
   StringEncoding encoding;
 } String;
 
-/* Elementary. */
 Status String_Create(String *inst, int len);
 Status String_CopyOf(String *inst, String *other);
 Status String_Delete(String *inst);
-Status String_GetIdx(String *inst, Char *item, int index);
-Status String_SetIdx(String *inst, Char *item, int index);
+Status String_Encode(String *inst, StringEncoding encoding);
+Status String_Decode(String *inst, StringEncoding encoding);
 Status String_Literalise(String *inst, String *store);
 
-/* Extensional. */
 Status StringUtils_FromInteger(String *inst, int value, int base);
 Status StringUtils_FromShortInteger(String *inst, short int value, int base);
 Status StringUtils_FromLongInteger(String *inst, long int value, int base);
@@ -77,10 +75,8 @@ Status StringUtils_ToUnsignedComplexLongLongInteger(String *inst, unsigned _Comp
 Status StringUtils_ToAddress(String *inst, void **store);
 Status StringUtils_ToCharBuff(String *inst, char const *buff);
 Status StringUtils_ToWideCharBuff(String *inst, wchar_t const *wbuff);
-// Status StringUtils_Format(String *inst, const String *restrict fmt, ...);
 Status StringUtils_Tokenise(String *inst, const String *delim, String *store);
-Status String_Encode(String *inst, StringEncoding encoding)  throws(UnsupportedEncoding  EncodingError  DecodingError);
-Status String_Decode(String *inst, StringEncoding encoding)  throws(UnsupportedEncoding  EncodingError  DecodingError);
+bool   StringUtils_IsBlank(String *inst);
 int    StringUtils_Compare(String *a, String *b);
 
 static Status StringConversionPrecisionError = {
@@ -92,14 +88,5 @@ static Status StringConversionPrecisionError = {
   .loc = __GLOBAL__,
   .prev = (Status *)&ImprecisionError
 };
-
-// # define string(str)  ((String) {\
-//   .data = 
-// })
-
-typedef Array(int)              InfiniteInteger;
-typedef Array(double)           InfiniteFloatingPoint;
-typedef Array(_Complex double)  InfintieComplex;
-
 
 #endif  /* COMPOUND_STRING_H */

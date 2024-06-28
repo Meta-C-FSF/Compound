@@ -3,6 +3,8 @@
 
 Status Array_Create(Array *inst, int len, size_t size)
 {
+  nonull(inst, apply(UnavailableInstance));
+
   /* Skip the living instances. */
   state(inst && inst->alive, apply(InstanceStillAlive));
   
@@ -101,54 +103,45 @@ Status Array_CopyOf(Array *inst, Array *other)
   return apply(NormalStatus);
 }
 
-void   Array_Delete(Array *inst)
+Status Array_Delete(Array *inst)
 {
-  svoid(!inst || !inst->alive);
-  
+  nonull(!inst, apply(UnavailableInstance));
+  state(!inst->alive, apply(InstanceNotAlive));
+
+  /* Iterate through each member and delete them. */  
   for (register int i = 0; i < inst->len; i++) {
-    Var_Delete(&inst->members[i]);
+    fail(Var_Delete(&inst->members[i]));
   }
   
   free(inst->members);
-  
+  inst->members = NULL;
   inst->alive = false;
   inst->len = 0;
+  
+  return apply(NormalStatus);
 }
 
-// Status Array_GetIdx(Array *inst, Var *store, int index)
-// {
-//   nonull(inst, apply(UnavailableInstance));
-//   nonull(store, apply(annot(UnavailableParameter,
-//     "Given store was unavailable.")));
-//   state(!store->alive, apply(annot(InstanceNotAlive,
-//     "Cannot store into a non-alive var.")));
-//   state(index >= inst->len || index < 0, apply(ArrayIndexOutOfBound));
+bool Array_Equals(Array *arr1, Array *arr2)
+{
+  /* Skip unavailable instance and parameter. */
+  state(!arr1 || !arr2, false);
   
-//   // *store = inst->members[index];
-//   store->addr = inst->members[index].addr;
-//   store->size = inst->members[index].size;
+  /* Skip when arr1 and arr2 have different length. */
+  state(arr1->len != arr2->len, false);
   
-//   return apply(NormalStatus);
-// }
-
-// Status Array_SetIdx(Array *inst, Var *source, int index)
-// {
-//   nonull(inst, apply(UnavailableInstance));
-//   nonull(source, apply(annot(UnavailableParameter,
-//     "Given store was unavailable.")));
-//   state(!source->alive, apply(annot(InstanceNotAlive,
-//     "Cannot assign with a non-alive var.")));
-//   state(index >= inst->len || index < 0, apply(ArrayIndexOutOfBound));
+  /* Skip when operation is not supported. */
+  state(!arr1->alive || !arr2->alive, false);
   
-//   // inst->members[index] = *source;
-//   inst->members[index].addr = source->addr;
-//   inst->members[index].size = source->size;
+  /* Iterate through each member for comparison. */
+  for (register int i = 0; i < arr1->len; i++) {
+    if (!Var_Equals(&arr1->members[i], &arr2->members[i])) {
+      return false;
+    }
+  }
   
-//   return apply(NormalStatus);
-// }
-
-bool   Array_Equals(Array *arr1, Array *arr2);
-
+  /* Compare rest of the struct member. */  
+  return (arr1->alive == arr2->alive);
+}
 
 Status ArrayUtils_Insert(Array *inst, Var *item, int index);
 
@@ -171,6 +164,3 @@ Status ArrayUtils_Split(Array *inst, Array *fore, Array *rear, int index);
 Status ArrayUtils_Revert(Array *inst);
 
 bool   ArrayUtils_IsEmpty(Array *inst);
-
-bool   ArrayUtils_IsBlank(Array *inst);
-

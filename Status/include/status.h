@@ -190,7 +190,7 @@ DEFSTATUS(RuntimeError, 1,
   STATUS_ERROR, &ErrorStatus);
 
 DEFSTATUS(InstanceStillAlive, 1,
-  "Given instance was yet alive.",
+  "Given instance was still alive.",
   STATUS_ERROR, &RuntimeError);
 
 DEFSTATUS(InstanceNotAlive, 1,

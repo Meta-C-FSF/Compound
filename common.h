@@ -85,7 +85,7 @@
 
 /* Create a new UnknownStatus on the fly. */
 # define unknown(e, c, v)  ((Status) {\
-  .identity = nameof(e),\
+  .identity = e.identity,\
   .value = v,\
   .description = c,\
   .characteristic = STATUS_UNKNOWN,\
@@ -95,7 +95,7 @@
 
 /* Create a new NormalStatus on the fly. */
 # define normal(e, c)  ((Status) {\
-  .identity = nameof(e),\
+  .identity = e.identity,\
   .value = 0,\
   .description = c,\
   .characteristic = STATUS_NORMAL,\
@@ -105,7 +105,7 @@
 
 /* Create a new ErrorStatus on the fly. */
 # define error(e, c)  ((Status) {\
-  .identity = nameof(e),\
+  .identity = e.identity,\
   .value = e.value,\
   .description = c,\
   .characteristic = STATUS_ERROR,\
@@ -113,7 +113,7 @@
   .prev = e.prev\
 })
 
-/* Extend the Status chain by giving 'p' for "predecessor" and 'e' for "Eval-Status". */
+/* Replace the prev of e with p. */
 # define extend(p, e)  ((Status) {\
   .identity = e.identity,\
   .value = p.value,\
