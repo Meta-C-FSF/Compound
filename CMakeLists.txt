@@ -2,16 +2,21 @@ cmake_minimum_required (VERSION 3.5)
 
 project (Compound)
 
+# set(CMAKE_C_COMPILER  clang)
 set(CMAKE_C_COMPILER  clang)
+
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY  out)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY  out)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY  out)
 
 add_compile_options(-g -std=c99 -Wall -Wextra -D__DEBUG__)
 
 set(SHARED_SOURCE
-    MemMan/src/memman.c
-    Status/src/status.c
-    Array/src/array.c
-    Var/src/var.c
-    catlog.c)
+    src/memman.c
+    src/status.c
+    src/array.c
+    src/var.c
+    src/catlog.c)
 
 set(LIBCOMPOUND_SOURCE ${SHARED_SOURCE})
 
@@ -19,19 +24,6 @@ add_library(compound SHARED ${LIBCOMPOUND_SOURCE})
 
 LINK_LIBRARIES(m)
 
-# add_executable(CompoundTest test.c
-#                Var/src/var.c
-#                Status/src/status.c
-#                Stack/src/stack.c
-#                Array/src/array.c
-#                Utils/src/utils.c
-#                catlog.c
-#                name.c)
-
 add_executable(CompoundTest
-               test.c
-               MemMan/src/memman.c
-               Status/src/status.c
-               Array/src/array.c
-               Var/src/var.c
-               catlog.c)
+               ${SHARED_SOURCE}
+               test.c)

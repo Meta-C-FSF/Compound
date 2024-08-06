@@ -1,35 +1,11 @@
 #!/bin/sh
 
-if [ "$(whoami)" != "root" ]; then
-  echo "The script require root privilege to execute properly.  Current identity: $(whoami)"
-  exit 1
-fi
-
-SRC="$PWD"
 DST=/usr/include/Compound
-set -- Array Paper Pen Render Status Var MemMan Stack Utils String Object
 
 # Create directory.
-if [ ! -d "$DST" ]; then
-  mkdir -pv "$DST"
-fi
+[ ! -d "$DST" ] && mkdir -pv "$DST"
 
-# Install project-like headers.
-while :; do  
-  p="$1"
-  if [ -z "$1" ]; then break; fi
-  
-  cd "$p" || exit 1
-  echo "$(date) >>> Installing $p"
-  cp -v include/*.h "$DST"
-  cd "$SRC" || exit 1
-  shift 1
-  echo
-done
+# Install headers.
+cp -v inc/* "$DST" || ( printf "\nPre-installation failed.\n" >&2 && exit 1 )
 
-# Install individual headers.
-cp -v "common.h" "const.h" "platform.h"\
-      "name.h" "namescope.h" "type.h" "catlog.h"\
-      "attr.h" "registry.h" "class.h" "function.h" "report.h" "$DST"
-
-printf "\nDone\n"
+printf "\nProcedure succeeded.\n"
