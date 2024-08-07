@@ -298,4 +298,13 @@ typedef bool _Bit;
 # define CONSTRUCTOR  constructor_t Constructor
 # define DESTRUCTOR  destructor_t Destructor
 
+# define liveness(live, obj)  obj
+
+typedef enum {
+  LIVENESS_DEAD        = 0b000,
+  LIVENESS_HALF_ALIVE  = 0b001,
+  LIVENESS_ALIVE       = 0b010,
+  LIVENESS_UNKNOWN     = 0b100,
+} Liveness;
+
 #endif /* COMPOUND_COMMON_H */

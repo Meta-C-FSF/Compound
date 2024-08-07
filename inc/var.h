@@ -14,15 +14,15 @@
 
 typedef Memory Var;
 
-Status Var_Create(Var *inst, size_t size, literalisation_t lit);
-Status Var_Allocate(Memory *inst);
-Status Var_Reallocate(Memory *inst, size_t size);
-Status Var_Release(Memory *inst);
-Status Var_CopyOf(Var *inst, Var *other);
-Status Var_Delete(Var *inst);
+Status Var_Create(liveness(DEAD, Var) *inst, size_t size, literalisation_t lit);
+Status Var_CopyOf(liveness(DEAD, Var) *inst, liveness(ALIVE, Var) *other);
+Status Var_Allocate(liveness(DEAD, Var) *inst);
+Status Var_Reallocate(liveness(ALIVE, Var) *inst, size_t size);
+Status Var_Release(liveness(ALIVE, Var) *inst);
+Status Var_Delete(liveness(DEAD, Var) *inst);
 // Status Var_Assign(Var *inst, Var *value);
-Status Var_Literalise(Var *inst, char *buff);
-bool   Var_Equals(Var *a, Var *b);
-void   VarUtils_Swap(Var *v1, Var *v2);
+Status Var_Literalise(liveness(ALIVE, Var) *inst, char *buff);
+bool   Var_Equals(liveness(ALIVE, Var) *a, liveness(ALIVE, Var) *b);
+void   VarUtils_Swap(liveness(ALIVE, Var) *v1, liveness(ALIVE, Var) *v2);
 
 #endif  /* COMPOUND_VAR */

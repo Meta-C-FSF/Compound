@@ -10,7 +10,7 @@
 typedef struct {
   void *addr;
   size_t size;
-  bool alive;
+  Liveness liveness;
   LITERALISE;
 } Memory;
 

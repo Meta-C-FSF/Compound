@@ -19,7 +19,8 @@ Status func(void)
 
 // void __DESTRUCT__() {}
 
-# define PrintVar(v, buff)  {\
+# define PrintVar(v)  {\
+  char buff[LITERALISATION_LENGTH_MAXIMUM] = EMPTY;\
   unsure(value(TraditionalFunctionReturn, v.Literalise(&v, buff)), !_.value,\
   {\
     return annot(ReadWriteError, _.description);\
@@ -37,7 +38,7 @@ int test_var_literalise(void *inst, char *buff)
   
   return snprintf(buff, LITERALISATION_LENGTH_MAXIMUM,
     VAR_LITERALISE_FORMAT"\talive:%d\t%p",
-    ((Var *)inst)->addr, ((Var *)inst)->size, ((Var *)inst)->alive,
+    ((Var *)inst)->addr, ((Var *)inst)->size, ((Var *)inst)->liveness,
     ((Var *)inst)->Literalise);
 }
 
@@ -59,7 +60,7 @@ int test_array_literalise(void *inst, char *buff)
       LITERALISATION_LENGTH_MAXIMUM,
       "%s, %d, %lu, %d, %p",
       memb_buff, ((Array *)inst)->len, ((Array *)inst)->size,
-      ((Array *)inst)->alive, ((Array *)inst)->Literalise);
+      ((Array *)inst)->liveness, ((Array *)inst)->Literalise);
   
   return written;
 }
@@ -72,7 +73,72 @@ int test_array_literalise(void *inst, char *buff)
   cat(buff);\
 }
 
-Status Main(void)  // ArrayOperations
+Status Main(void)  // ArrayInsertion
+{
+  Array arr = EMPTY;
+  fail(Array_Create(&arr, 3, sizeof(long long), NULL));
+  fail(Array_Allocate(&arr));
+  
+  Array ins = EMPTY;
+  fail(Array_Create(&ins, 4, 32, NULL));
+  fail(Array_Allocate(&ins));
+  
+  /* Perform insertion. */
+  fail(ArrayUtils_Insert(&arr, &ins, 2));
+  
+  fail(Array_Release(&ins));
+  fail(Array_Delete(&ins));
+  
+  fail(Array_Release(&arr));
+  fail(Array_Delete(&arr));
+  
+  return apply(NormalStatus);
+}
+
+Status MainArrayCopy(void)
+{
+  Array arr1 = EMPTY;
+  Array arr2 = EMPTY;
+  
+  fail(Array_Create(&arr1, 5, sizeof(int), NULL));
+  fail(Array_Create(&arr2, 10, sizeof(int), NULL));
+  
+  fail(Array_Allocate(&arr1));
+  fail(Array_Allocate(&arr2));
+  
+  cat("Before copying.");
+  cat("arr1");
+  for (register int i = 0; i < arr1.len; i++) {
+    PrintVar(arr1.members[i]);
+  }
+  cat("arr2");
+  for (register int i = 0; i < arr2.len; i++) {
+    PrintVar(arr2.members[i]);
+  }
+  
+  /* Perform copying. */  
+  fail(Array_CopyOf(&arr1, &arr2));
+  
+  cat("After copying.")
+  cat("arr1");
+  for (register int i = 0; i < arr1.len; i++) {
+    PrintVar(arr1.members[i]);
+  }
+  cat("arr2");
+  for (register int i = 0; i < arr2.len; i++) {
+    PrintVar(arr2.members[i]);
+  }
+  
+  fail(Array_Release(&arr2));
+  fail(Array_Release(&arr1));
+  
+  fail(Array_Delete(&arr2));
+  fail(Array_Delete(&arr1));
+  
+  return apply(NormalStatus);
+}
+
+Status MainArrayOperations(void)
 {
   char buff[LITERALISATION_LENGTH_MAXIMUM] = EMPTY;
   Array arr = EMPTY;
@@ -93,27 +159,27 @@ Status Main(void)  // ArrayOperations
   return apply(NormalStatus);
 }
 
-Status MainVarOperations(void)
-{
-  char buff[LITERALISATION_LENGTH_MAXIMUM] = EMPTY;
-  Var v1 = EMPTY;
+// Status MainVarOperations(void)
+// {
+//   char buff[LITERALISATION_LENGTH_MAXIMUM] = EMPTY;
+//   Var v1 = EMPTY;
   
-  fail(Var_Create(&v1, sizeof(int), test_var_literalise));  
-  PrintVar(v1, buff);
+//   fail(Var_Create(&v1, sizeof(int), test_var_literalise));  
+//   PrintVar(v1, buff);
   
-  fail(Var_Allocate(&v1));
-  PrintVar(v1, buff);
+//   fail(Var_Allocate(&v1));
+//   PrintVar(v1, buff);
   
-  fail(Var_Reallocate(&v1, sizeof(double)));
-  PrintVar(v1, buff);
+//   fail(Var_Reallocate(&v1, sizeof(double)));
+//   PrintVar(v1, buff);
   
-  fail(Var_Release(&v1));
-  PrintVar(v1, buff);
+//   fail(Var_Release(&v1));
+//   PrintVar(v1, buff);
 
-  fail(Var_Delete(&v1));
+//   fail(Var_Delete(&v1));
   
-  return apply(NormalStatus);
-}
+//   return apply(NormalStatus);
+// }
 
 //////////////////////////////// LEGACY TESTS /////////////////////////////////
 

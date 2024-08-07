@@ -2,6 +2,7 @@
 # define COMPOUND_CLASS_H
 
 # include <Compound/object.h>
+# include <Compound/string.h>
 
 typedef struct {} _Interface;
 

@@ -23,5 +23,4 @@ ccwarn
 genwarn.sh
 test.sh
 expansion_formatted.txt
-live
-live.sh
+live*

@@ -10,7 +10,7 @@ Status StringUtils_FromCharBuff(String *inst, char const *buff)
 {
   nonull(inst, apply(UnavailableInstance));
   nonull(buff, apply(UnavailableBuffer));
-  state(inst->alive, apply(InstanceStillAlive));
+  state(inst->liveness, apply(InstanceStillAlive));
 
   /* Create array instance for string. */
   const int bufflen = strlen(buff);
@@ -32,7 +32,7 @@ Status StringUtils_FromWideCharBuff(String *inst, wchar_t const *buff)
 {
   nonull(inst, apply(UnavailableInstance));
   nonull(buff, apply(UnavailableBuffer));
-  state(inst->alive, apply(InstanceStillAlive));
+  state(inst->liveness, apply(InstanceStillAlive));
 
   /* Create array instance for string. */
   const int bufflen = wcslen(buff);

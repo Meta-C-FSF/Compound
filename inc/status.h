@@ -203,7 +203,7 @@ DEFSTATUS(InstanceStillAlive, 1,
   STATUS_ERROR, &RuntimeError);
 
 DEFSTATUS(InstanceNotAlive, 1,
-  "Given instance for reallocation was not alive.",
+  "Given instance was not alive.",
   STATUS_ERROR, &RuntimeError);
 
 DEFSTATUS(SourceNotAlive, 1,
@@ -346,6 +346,14 @@ DEFSTATUS(UnsupportedEncoding, 1,
 DEFSTATUS(FunctionNotDeployed, 1,
   "The function called have not been deployed.",
   STATUS_ERROR, &InvalidOperation);
+
+DEFSTATUS(ReadonlyTarget, 1,
+  "Given target does not support such modifications.",
+  STATUS_ERROR, &InvalidOperation);
+
+DEFSTATUS(IncorrectLiveness, 1,
+  "Given instance does not have required liveness for further operations.",
+  STATUS_ERROR, &InvalidObject);
 
 // ========================================================
 
