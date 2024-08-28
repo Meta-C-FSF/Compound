@@ -8,6 +8,7 @@ work
 Makefile
 *sublime*
 found
+todo
 todo_stack
 getReady.sh
 base_type.c
