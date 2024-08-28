@@ -1,1 +1,0 @@
-#include <Compound/stack.h>
