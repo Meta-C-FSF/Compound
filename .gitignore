@@ -25,3 +25,4 @@ genwarn.sh
 test.sh
 expansion_formatted.txt
 live*
+gen_type_attr.c

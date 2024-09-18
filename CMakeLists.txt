@@ -10,11 +10,13 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY  out)
 
 add_compile_options(-g -std=c99 -Wall -Wextra -D__DEBUG__)
 
-# set(SHARED_SOURCE)
+set(SHARED_SOURCE
+  src/stack.c
+  src/status.c)
 
-# set(LIBCOMPOUND_SOURCE ${SHARED_SOURCE})
+set(LIBCOMPOUND_SOURCE ${SHARED_SOURCE})
 
-# add_library(compound SHARED ${LIBCOMPOUND_SOURCE})
+add_library(compound SHARED ${LIBCOMPOUND_SOURCE})
 
 # LINK_LIBRARIES(m)
 

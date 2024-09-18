@@ -1,11 +1,11 @@
 #!/bin/sh
 
-DST=/usr/include/Compound_latest
+DST=/usr/include/Compound
 
 # Create directory.
 [ ! -d "$DST" ] && mkdir -pv "$DST"
 
 # Install headers.
-cp -vr inc/ "$DST" || ( printf "\nPre-installation failed.\n" >&2 && exit 1 )
+cp -vr inc/* "$DST" || ( printf "\nPre-installation failed.\n" >&2 && exit 1 )
 
 printf "\nProcedure succeeded.\n"
