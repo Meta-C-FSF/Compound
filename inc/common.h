@@ -32,11 +32,14 @@
 /* Another way to handle if statements more cleanly. */
 # define solve(s, b)  { if (s) b }
 
-/* Handling expression with its result. */
-# define when(expr, b)  { int _ = (expr); if (_) b; }
-
-/* Handling expression with its precalculated result. */
+/* Handling expression. */
 # define where(expr, b)  { int _ = (expr); b; }
+
+/* Handling expression returned NON-ZERO. */
+# define nzero(expr, b)  { int _ = (expr); if (_) b; }
+
+/* Handling expression returned ZERO. */
+# define zero(expr, b)  { int _ = (expr); if (!(_)) b; }
 
 /* Execute b whenever finds s is "okay". */
 # define ok(s, b)  { Status _ = s;  if (StatusUtils_IsOkay(_))  b }
@@ -79,8 +82,8 @@
 /* Cast Var "var" into builtin type in C specified with "type". */
 # define cast(var, type)  (*(type *)var.addr)
 
-// # define assign(var, value, type)  { cast(var, type) = cast(value, type); }
-# define assign(mem, val)  {  }
+// // # define assign(var, value, type)  { cast(var, type) = cast(value, type); }
+// # define assign(mem, val)  {  }
 
 /* Useful on handling Status errors in a function returns int. */
 # define quit_on_fail(s)  { notok(s, { PrintStatusDump(_); return _.value; }) }
@@ -93,35 +96,35 @@
 //   va_end(ptr);\
 // }
 
-/* Create a new UnknownStatus on the fly. */
-# define unknown(e, c, v)  ((Status) {\
-  .identity = e.identity,\
-  .value = v,\
-  .description = c,\
-  .characteristic = STATUS_UNKNOWN,\
-  .loc = e.loc,\
-  .prev = e.prev\
-})
+// /* Create a new UnknownStatus on the fly. */
+// # define unknown(e, c, v)  ((Status) {\
+//   .identity = e.identity,\
+//   .value = v,\
+//   .description = c,\
+//   .characteristic = STATUS_UNKNOWN,\
+//   .loc = e.loc,\
+//   .prev = e.prev\
+// })
 
-/* Create a new NormalStatus on the fly. */
-# define normal(e, c)  ((Status) {\
-  .identity = e.identity,\
-  .value = 0,\
-  .description = c,\
-  .characteristic = STATUS_NORMAL,\
-  .loc = e.loc,\
-  .prev = e.prev\
-})
+// /* Create a new NormalStatus on the fly. */
+// # define normal(e, c)  ((Status) {\
+//   .identity = e.identity,\
+//   .value = 0,\
+//   .description = c,\
+//   .characteristic = STATUS_NORMAL,\
+//   .loc = e.loc,\
+//   .prev = e.prev\
+// })
 
-/* Create a new ErrorStatus on the fly. */
-# define error(e, c)  ((Status) {\
-  .identity = e.identity,\
-  .value = e.value,\
-  .description = c,\
-  .characteristic = STATUS_ERROR,\
-  .loc = e.loc,\
-  .prev = e.prev\
-})
+// /* Create a new ErrorStatus on the fly. */
+// # define error(e, c)  ((Status) {\
+//   .identity = e.identity,\
+//   .value = e.value,\
+//   .description = c,\
+//   .characteristic = STATUS_ERROR,\
+//   .loc = e.loc,\
+//   .prev = e.prev\
+// })
 
 /* Replace the prev of e with p. */
 # define extend(p, e)  ((Status) {\
@@ -205,6 +208,14 @@
   .loc = __HERE__,\
   .prev = e.prev\
 })
+// # define apply(e)  (extend(((Status) {\
+//    .identity = e.identity,\
+//    .value = e.value,\
+//    .description = e.description,\
+//    .characteristic = e.characteristic,\
+//    .loc = __HERE__,\
+//    .prev = e.prev\
+// })), e)
 
 /* Replace the description from @e with @c. */
 # define annot(e, c)  ((Status) {\
@@ -226,15 +237,6 @@
   .dst = stdout\
 })
 
-/* Shortcut for sending a CatLog. */
-# define cat(s)  {\
-  CatlogMsg msg;\
-  CatlogMsg_Create(&msg, CATLOG_LEVEL_DEBUG, "CAT", s);\
-  CatlogSender sender;\
-  CatlogSender_Create(&sender, &msg, stderr);\
-  CatlogSender_Send(&sender);\
-}
-
 # define strnil(s)  (!s ? ("(null)") : s)
 
 /* Memory type declaration. */
@@ -249,7 +251,7 @@
 /* Type declaration. */
 # define Type(T)  Type
 
-/* Virtual function declaration attribute for abstract object and interface. */
+/* Virtual function declaration attribute for abstract objects and interfaces. */
 # define virtual(funcdecl)
 
 typedef enum {
@@ -297,7 +299,7 @@ typedef bool Bit;
 # define attr(a)
 
 /* Useless in C, only for human to see.
-   Probably rewrite this in Classic. */
+   Probably rewrite this in Classy. */
 # define throws(e)
 
 /* Interfaces for handling various customisable

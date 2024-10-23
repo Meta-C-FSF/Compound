@@ -1,57 +1,30 @@
 #ifndef COMPOUND_MEMORY_H
 # define COMPOUND_MEMORY_H
 
+# include <Compound/stack.h>
 # include <Compound/status.h>
 # include <Compound/type.h>
 
 typedef struct {
-  /* Actual address pointer, pointing towards address of the object. */
-  const void *addr;
-  
-  /* Type of the object. */
-  const Type type;
+  void *addr;
+  Type type;
+  Stack *stack;
 } Memory;
 
 DEFTYPE(TMemory, sizeof(Memory));
+# define alive(mem)  ((mem).addr)
 
-# define MEMORY_STACK_MAXIMUM  65536
+/* Reconstructibilities. */
+Memory Allocate(Type type, size_t quantity);
+Memory Reallocate(Memory mem, Type type);
+void Release(Memory mem);
 
-// static Memory MEMORY_STACK[MEMORY_STACK_MAXIMUM] = EMPTY;
+/* Operations. */
+Status Memory_Create(Memory *inst, Type type, Stack *stack);
+Status Memory_CopyOf(Memory *inst, Memory *other);
+Status Memory_Delete(Memory *inst);
 
-// static Memory *MEMORY_STACK_INDEXER = MEMORY_STACK;
-
-// static inline long _Memory_CalcStackIndexerOffset()
-// {
-//   return (MEMORY_STACK_INDEXER - MEMORY_STACK);
-// }
-
-// static inline bool _Memory_StackFull()
-// {
-//   return (_Memory_CalcStackIndexerOffset() == MEMORY_STACK_MAXIMUM);
-// }
-
-// static inline bool _Memory_StackEmpty()
-// {
-//   return (MEMORY_STACK_INDEXER == MEMORY_STACK);
-// }
-
-// /* Returns the location within MEMORY_STACK after inserting successfully.
-//    Returns NULL if insertion failed. */
-// static inline Memory *_Memory_StackPush(Memory *elem)
-// {
-//   if (!elem)  { return NULL; }
-//   if (_Memory_StackFull())  { return NULL; }
-  
-//   *(++MEMORY_STACK_INDEXER) = *elem;
-  
-//   return MEMORY_STACK_INDEXER;
-// }
-
-// static inline void _Memory_StackPop()
-// {
-//   if (_Memory_StackEmpty())  { return; }
-  
-  
-// }
+/* Utilities. */
+void Swap(Memory *inst, Memory *other);
 
 #endif  /* COMPOUND_MEMORY_H */

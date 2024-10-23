@@ -7,7 +7,7 @@ Status Location_Literalise(Location *inst, char *buff)
 
   where(
     snprintf(buff, LITERALISATION_LENGTH_MAXIMUM,
-              LOCATION_LITERALISE_FORMAT,inst->file,inst->line,inst->func),
+              LOCATION_LITERALISE_FORMAT, inst->file, inst->line, inst->func),
     return apply(value(TraditionalFunctionReturn, _));
   );
   
@@ -53,7 +53,7 @@ Status Status_Register(Status *inst, Status *buff)
   nonull(buff, apply(annot(UnavailableParameter,
     "Given buffer for storing registry was unavailable.")));
 
-  
+  // TODO(william):  finish this function.
 
   return apply(NormalStatus);
 }
@@ -74,22 +74,22 @@ Status Status_Literalise(Status *inst, char *buff)
 
   /* Styling output. */
   // TODO(william): Replace following lines with 
-  const char *fmt;
-  if (inst->characteristic == STATUS_ERROR) {
-    // TODO(william): Replace following line with coloured-term-output function.
-    fmt = "\e[38;5;9m\e[1m"STATUS_LITERALISE_FORMAT"\e[0m";
-  } else if (inst->characteristic == STATUS_UNKNOWN) {
-    // TODO(william): Replace following line with coloured-term-output function.
-    fmt = "\e[38;5;11m"STATUS_LITERALISE_FORMAT"\e[0m";
-  } else {
-    // TODO(william): Replace following line with coloured-term-output function.
-    fmt = "\e[38;5;10m"STATUS_LITERALISE_FORMAT"\e[0m";
-  }
+  // const char *fmt;
+  // if (inst->characteristic == STATUS_ERROR) {
+  //   // TODO(william): Replace following line with coloured-term-output function.
+  //   fmt = "\e[38;5;9m\e[1m"STATUS_LITERALISE_FORMAT"\e[0m";
+  // } else if (inst->characteristic == STATUS_UNKNOWN) {
+  //   // TODO(william): Replace following line with coloured-term-output function.
+  //   fmt = "\e[38;5;11m"STATUS_LITERALISE_FORMAT"\e[0m";
+  // } else {
+  //   // TODO(william): Replace following line with coloured-term-output function.
+  //   fmt = "\e[38;5;10m"STATUS_LITERALISE_FORMAT"\e[0m";
+  // }
 
   /* Concatenate every buffer. */
   where(
-    snprintf(buff, LITERALISATION_LENGTH_MAXIMUM, fmt, inst->identity,
-             inst->description,
+    snprintf(buff, LITERALISATION_LENGTH_MAXIMUM, STATUS_LITERALISE_FORMAT,
+             inst->identity, inst->description,
              (!inst->prev ? "(null)" : (inst->prev->identity)),
              inst->value, inst->characteristic, loc_buff), {
     return apply(value(TraditionalFunctionReturn, _));

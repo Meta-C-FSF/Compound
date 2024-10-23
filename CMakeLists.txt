@@ -12,7 +12,9 @@ add_compile_options(-g -std=c99 -Wall -Wextra -D__DEBUG__)
 
 set(SHARED_SOURCE
   src/stack.c
-  src/status.c)
+  src/status.c
+  src/catlog.c
+  src/memory.c)
 
 set(LIBCOMPOUND_SOURCE ${SHARED_SOURCE})
 

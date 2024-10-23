@@ -4,12 +4,11 @@
 # include <stdbool.h>
 # include <stdint.h>
 # include <stdio.h>
+# include <string.h>
 # include <threads.h>
 
 # include <Compound/common.h>
 # include <Compound/platform.h>
-# include <Compound/utils.h>
-# include <Compound/type.h>
 
 /* Status characteristics */
 typedef enum {
@@ -51,7 +50,7 @@ typedef struct {
    information about the procedure. */
 typedef struct _Status {
   char *identity;
-  int value;  /* Traditional returning data "int".  Only used when the function
+  int value;  /* Traditional returning data "int". Only used when the function
                  called and received legacy functions that uses "int" as the
                  returning type that wish to have place to hold the value.
                  Otherwise, the function would just return the structure Status. */
@@ -60,11 +59,6 @@ typedef struct _Status {
   Location loc;
   struct _Status *prev;
 } Status;
-
-static const Type TStatus = {
-  .identifier = nameof(Status),
-  .size = sizeof(Status)
-};
 
 # define DEFSTATUS(i, v, d, c, p)                          \
   static const Status i = {                                \
@@ -365,62 +359,16 @@ DEFSTATUS(IncorrectLiveness, 1,
   "Given instance does not have required liveness for further operations.",
   STATUS_ERROR, &InvalidObject);
 
-DEFSTATUS(TypeError, 1,
-  "A Type replated error had occurred.",
-  STATUS_ERROR, &ErrorStatus);
-
-DEFSTATUS(InvalidType, 1,
-  "Given Type is not supported.",
-  STATUS_ERROR, &InvalidObject);
-
-DEFSTATUS(InvalidTypeQualifierUsage, 1,
-  "Given object has an invalid Type qualifier combination.",
-  STATUS_ERROR, &TypeError);
-
-DEFSTATUS(NonPointerButRestrict, 1,
-  "The Type qualifier wrongly uses 'restrict' without 'pointer'.",
-  STATUS_ERROR, &InvalidTypeQualifierUsage);
-
-DEFSTATUS(NonFunctionButVariadic, 1,
-  "The Type qualifier wrongly uses 'variadic' without 'function'.",
-  STATUS_ERROR, &InvalidTypeQualifierUsage);
-
-DEFSTATUS(NonPointerButFunction, 1,
-  "The Type qualifier wrongly uses 'function' without 'pointer'.",
-  STATUS_ERROR, &InvalidTypeQualifierUsage);
-
-DEFSTATUS(BothLongAndShort, 1,
-  "The Type qualifier wrongly uses 'long' with 'short'.",
-  STATUS_ERROR, &InvalidTypeQualifierUsage);
-
-DEFSTATUS(BothConstantAndVolatile, 1,
-  "The Type qualifier wrongly uses 'constant' with 'volatile'.",
-  STATUS_ERROR, &InvalidTypeQualifierUsage);
-
-DEFSTATUS(BothConstantAndRegister, 1,
-  "The Type qualifier wrongly uses 'constant' with 'register'.",
-  STATUS_ERROR, &InvalidTypeQualifierUsage);
-
-DEFSTATUS(BothStaticAndRegister, 1,
-  "The Type qualifier wrongly uses 'static' with 'register'.",
-  STATUS_ERROR, &InvalidTypeQualifierUsage);
-
-# ifndef ORA_PROC
-DEFSTATUS(TypeImaginaryIsUnsupported, 1,
-  "Imaginary Type is not supported.",
-  STATUS_ERROR, &InvalidType);
-# endif  /* ORA_PROC */
-
 // ========================================================
 
-static inline Status PrintStatus(Status s)
+static Status PrintStatus(Status s)
 {
   /* Literalise. */
   char buff[LITERALISATION_LENGTH_MAXIMUM];
   
   /* Handle returning value. */
   /* No bytes were written to buffer. */
-  unsure(Status_Literalise(&s, buff), !_.value, {
+  zero(Status_Literalise(&s, buff).value, {
     return apply(NoBytesWereWritten);
   })
 
@@ -431,7 +379,7 @@ static inline Status PrintStatus(Status s)
   })
 }
 
-static inline void PrintStatusDump(Status s)
+static void PrintStatusDump(Status s)
 {
   /* Create dump. */
   /* Calculate depth for dumping. */

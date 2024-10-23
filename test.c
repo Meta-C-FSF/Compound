@@ -1,137 +1,146 @@
+#include <Compound/catlog.h>
+#include <Compound/common.h>
 #include <Compound/memory.h>
+#include <Compound/platform.h>
+#include <Compound/stack.h>
 #include <Compound/status.h>
 #include <Compound/type.h>
 
-// Status PrintStack(Stack *inst)
+Status MainCatLog(void);
+
+Status Main(void)
+{
+  int i = 4;
+  while (--i) {
+    char buff[LITERALISATION_LENGTH_MAXIMUM] = EMPTY;
+    zero(Status_Literalise(((Status *)&InvalidLiteralisingBuffer), buff).value,
+      return apply(ReadWriteError););
+    error(buff);
+    
+    info("wow, have\nyou ever been here\nbefore?\n");
+  }
+  
+  return MainCatLog();
+}
+
+Status MainCatLog(void)
+{
+  redir(stdout);
+  filter(0);
+  
+  lowest("abab");
+  debug("buggy~");
+  info("what are you talking about?\nidk");  // Multi-line interrupt
+  warning("im big");
+  error("haha!");
+  fatal("omg");
+  highest("im everything");
+  
+  info("1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 "
+       "27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 "
+       "50");
+  
+  // /* Log user's input. */
+  // char buff[CATLOG_MESSAGE_CONTENT_LENGTH_MAXIMUM] = EMPTY;
+  // size_t bread = 0;
+  // zero(bread = fread(buff, sizeof(buff[0]), CATLOG_MESSAGE_CONTENT_LENGTH_MAXIMUM, stdin),
+  //   return apply(NoBytesWereRead););
+  // buff[CATLOG_MESSAGE_CONTENT_LENGTH_MAXIMUM - 1] = 0;
+  // (void)printf("bread: %lu\n", bread);
+  // (void)printf("input string length: %lu\n", strlen(buff));
+  // info(buff);
+
+  FILE *fp = NULL;
+  if (!(fp = fopen("/tmp/catlog", "w"))) {
+    warning("Failed to open file.");
+    return apply(ReadWriteError);
+  }
+
+  redir(fp);
+
+  info("info");
+  
+  (void)fclose(fp);
+  
+  warning("This message will not be sent successfully.");
+  
+  redir(stdout);
+  
+  debug("You found me!!");
+  
+  // FILE *fp = fopen("/tmp/catlog", "w");
+  // redir(fp);
+  
+  // regular("what are you talking about?");
+  // critical("haha!");
+  // none("abab");
+  // minor("minority");
+  // fatal("omg");
+  // debug("buggy~");
+  // major("im big");
+  // all("im everything");
+  
+  // (void)fclose(fp);
+  
+  return apply(NormalStatus);
+}
+
+Status MainMemoryAndStack(void)
+{
+  Stack memstk = EMPTY;
+  fail(Stack_Create(&memstk, sizeof(Memory), __COMPOUND_STACK_MAXIMUM__));
+  
+  Memory mem = EMPTY;
+  fail(Memory_Create(&mem, TInt16, &memstk));
+  
+  (void)printf("%p %lu\n", mem.addr, mem.type.size);
+  
+  mem = Reallocate(mem, TInt32);
+  
+  (void)printf("%p %lu\n", mem.addr, mem.type.size);
+  
+  fail(Memory_Delete(&mem));
+  
+  (void)printf("%p %lu\n", mem.addr, mem.type.size);
+  
+  fail(Stack_Delete(&memstk));
+  
+  return apply(NormalStatus);
+}
+
+// Status MainCompoundStackMaximum(void)
 // {
-//   avail(inst);
+//   Stack(Memory) allocations = EMPTY;
+//   fail(Stack_Create(&allocations, sizeof(Memory), __COMPOUND_STACK_MAXIMUM__));
   
+//   Memory mem = EMPTY;
+//   fail(Memory_Create(&allocations, &mem, sizeof(double)));
   
+//   cast(mem, double) = 3.14;
   
+//   (void)printf("%p: %lf\n", &mem, cast(mem, double));
+  
+//   fail(Stack_Delete(&allocations));
 //   return apply(NormalStatus);
 // }
 
-// <Compound/StdLib>
-static Type(pointer(TVoid)) M_Alloc(Memory(?) *inst, Type(constant(TUInt32)) size)
+Status StackSimplePerformanceDemo(void)
 {
-  // nonull(inst, apply(UnavailableInstance));
-  // state(!cast(size, size_t), apply(InvalidSize));
-
-  // state(!(inst->addr = malloc(cast(size, size_t))), apply(InsufficientMemory));
+  const size_t len = 0xFFFF;
   
-  // return apply(NormalStatus);
-}
-
-Status Main(void)  // Type
-{
-  REDEFTYPE(TVoidPointer, pointer(TVoid));
+  Stack stk = EMPTY;
+  fail(Stack_Create(&stk, sizeof(long long), len));
   
-  (void)printf("%lu\n", TVoidPointer.size);
+  for (register size_t i = 0; i < len; i++) {
+    state(!Stack_Push(&stk, Main), apply(RuntimeError));
+  }
   
-  // Memory mem = EMPTY;
+  Stack_PopAll(&stk);
   
-  // Type _Ty0 = M_Alloc(&mem, );
+  fail(Stack_Delete(&stk));
   
   return apply(NormalStatus);
 }
-
-Status MainBasicTypes(void)
-{
-  DEFTYPE(TByte, 1);
-  DEFTYPE(TWord, 2);
-  DEFTYPE(TDoubleWord, 4);
-  DEFTYPE(TQuadWord, 8);
-  
-  REDEFTYPE(TStaticConstantPointerOctoWord,
-    statical(constant(pointer(resize(TQuadWord, (TQuadWord.size * 2))))));
-  
-  Memory var_byte = { .addr = malloc(TByte.size), .type = TByte };
-  Memory var_word = { .addr = malloc(TWord.size), .type = TWord };
-  Memory var_dword = { .addr = malloc(TDoubleWord.size), .type = TDoubleWord };
-  Memory var_qword = { .addr = malloc(TQuadWord.size), .type = TQuadWord };
-  Memory var_static_const_pointer_octo_word = { .addr = malloc(TStaticConstantPointerOctoWord.size), .type = TStaticConstantPointerOctoWord };
-
-  cast(var_byte, int) = 10;
-
-  free((void *)var_static_const_pointer_octo_word.addr);
-  free((void *)var_byte.addr);
-  free((void *)var_qword.addr);
-  free((void *)var_dword.addr);
-  free((void *)var_word.addr);
-   
-  // REDEFTYPE(TPointerWord, TWord);
-  // REDEFTYPE(TPointerDoubleWord, TDoubleWord);
-  
-  (void)printf("Type identifier of "nameof(TStaticConstantPointerOctoWord)": "
-    "%s\n", TStaticConstantPointerOctoWord.identifier);
-  
-  return apply(NormalStatus);
-}
-
-Status MainStrTok(void)
-{
-  // char MESSAGE[] = "#include <stdio.h>\n#include <stdlib.h>\nint main(void)\n{\n\n  return 0;\n}\n";
-  char buff[10000] = EMPTY;
-  FILE *fp = fopen("/tmp/content", "r");
-  when(!(fread(buff, sizeof(char), 10000, fp)), {
-    return apply(value(annot(ReadWriteError, "Failure on fread."), _));
-  });
-  
-  register int counter = 0;
-  const char *restrict delim = "\n";
-  char *tok_curr = strtok(buff, delim);
-  do {
-    (void)printf("%d\t%s\n", ++counter, tok_curr);
-    tok_curr = strtok(NULL, delim);
-  } while (tok_curr);
-  
-  when((fclose(fp)), {
-    return apply(value(annot(ReadWriteError, "Failure on fclose."), _));
-  });
-  
-  return apply(NormalStatus);
-}
-
-// Status Main(void)
-// {
-//   Stack stk = EMPTY;
-//   fail(Stack_Create(&stk, sizeof(Memory *), 255));
-  
-//   const int max = Stack_MaxLength(stk);
-//   (void)printf("len: %d\n", max);
-
-//   Memory mem = {
-//     .addr = malloc(sizeof(int)),
-//     .size = sizeof(int),
-//     .usage = 1,
-//     .alive = true
-//   };
-  
-//   (void)fprintf(stderr, nameof(mem)":  @%p, %lu\n", mem.addr, mem.size);
-
-//   for (register int i = 0; i < max; i++) {
-//     if (!Stack_Push(&stk, &mem)) {
-//       // (void)printf("hit roof at %d!\n", i);
-//       break;
-//     }
-//     // (void)printf("pushed at %d\n", i);
-//   }
-  
-//   for (register int i = 0; i < max; i++) {
-//     if (!Stack_Pop(&stk)) {
-//       // (void)printf("hit bottom at %d!\n", max - i);
-//       break;
-//     }
-//     // (void)printf("popped at %d\n", max - i);
-//   }
-
-//   (void)fprintf(stderr, nameof(mem)":  @%p, %lu\n", mem.addr, mem.size);
-//   free((void *)mem.addr);
-  
-//   fail(Stack_Delete(&stk));
-  
-//   return apply(NormalStatus);
-// }
 
 int main(void)
 {

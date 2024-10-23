@@ -5,29 +5,12 @@
 # include <stdint.h>
 
 # include <Compound/common.h>
-
-// typedef struct {
-//   const char *identifier;
-//   const size_t size;
-//   const bool is_long;  // Counteracts when both "long" and "short".
-//   const bool is_short;
-//   const bool is_unsigned;
-//   const bool is_pointer;
-//   const bool is_restrict;  // ISO-C99 and above.
-//   const bool is_function;
-//   const bool is_variadic;
-//   const bool is_constant;
-//   const bool is_static;
-//   const bool is_register;  // ISO-C99 and above.
-//   const bool is_volatile;
-//   const bool is_complex;  // ISO-C99 and above.
-//   const bool is_imaginary;  // Oracle C compiler only.  No effect otherwise.
-// } Type;
+# include <Compound/status.h>
 
 typedef struct {
-  const char *identifier;
-  const size_t size;
-  const unsigned int qualifier;
+  char *identifier;
+  size_t size;
+  unsigned int qualifier;
 } Type;
 
 enum {
@@ -48,7 +31,7 @@ enum {
 };
 
 # define DEFTYPE(Ty, sz)  static const Type Ty = (type((Ty), (sz)));
-# define REDEFTYPE(Ty, other)  const Type Ty = (retype(Ty, (other)));
+# define REDEFTYPE(Ty, other)  static const Type Ty = (retype(Ty, (other)));
 
 /* Construct Type @Ty with given size @sz.
    Other members not specified remain as false. */
@@ -77,7 +60,7 @@ enum {
 # define retype(Ty, other)  ((Type) {                      \
   .identifier = nameof(Ty),                                \
   .size = other.size,                                      \
-  .qualifier = Ty.qualifier                                \
+  .qualifier = other.qualifier                             \
 })
 
 # define qualify(Ty, quality)  ((Type) {                   \
@@ -86,8 +69,11 @@ enum {
   .qualifier = ((Ty.qualifier) | (quality))                \
 })
 
-# define long(Ty)       (qualify(Ty, (1 << 0)))
-# define short(Ty)      (qualify(Ty, (1 << 1)))
+# define wide(Ty)  resize((Ty), ((Ty).size * 2))
+# define narrow(Ty)  resize((Ty), ((Ty).size / 2))
+
+# define long(Ty)       (wide(qualify(Ty, (1 << 0))))
+# define short(Ty)      (narrow(qualify(Ty, (1 << 1))))
 # define unsigned(Ty)   (qualify(Ty, (1 << 2)))
 # define pointer(Ty)    (qualify(Ty, (1 << 3)))
 # define restrict(Ty)   (qualify(Ty, (1 << 4)))
@@ -104,58 +90,43 @@ enum {
 
 DEFTYPE(TType, sizeof(Type));
 
-/////////////////// FUNDAMENTAL TYPES /////////////////////
-//------------------// SIGNED DATA //--------------------//
 DEFTYPE(TInt8, sizeof(int8_t));
 DEFTYPE(TInt16, sizeof(int16_t));
 DEFTYPE(TInt32, sizeof(int32_t));
 DEFTYPE(TInt64, sizeof(int64_t));
-
 DEFTYPE(TFastInt8, sizeof(int_fast8_t));
 DEFTYPE(TFastInt16, sizeof(int_fast16_t));
 DEFTYPE(TFastInt32, sizeof(int_fast32_t));
 DEFTYPE(TFastInt64, sizeof(int_fast64_t));
-
 DEFTYPE(TLeastInt8, sizeof(int_least8_t));
 DEFTYPE(TLeastInt16, sizeof(int_least16_t));
 DEFTYPE(TLeastInt32, sizeof(int_least32_t));
 DEFTYPE(TLeastInt64, sizeof(int_least64_t));
-
 DEFTYPE(TIntMax, sizeof(intmax_t));
 DEFTYPE(TIntPtr, sizeof(intptr_t));
 
-//-----------------// UNSIGNED DATA //-------------------//
-DEFTYPE(TUInt8, sizeof(uint8_t));
-DEFTYPE(TUInt16, sizeof(uint16_t));
-DEFTYPE(TUInt32, sizeof(uint32_t));
-DEFTYPE(TUInt64, sizeof(uint64_t));
+REDEFTYPE(TUInt8, unsigned(TInt8));
+REDEFTYPE(TUInt16, unsigned(TInt16));
+REDEFTYPE(TUInt32, unsigned(TInt32));
+REDEFTYPE(TUInt64, unsigned(TInt64));
+REDEFTYPE(TUFastInt8, unsigned(TFastInt8));
+REDEFTYPE(TUFastInt16, unsigned(TFastInt16));
+REDEFTYPE(TUFastInt32, unsigned(TFastInt32));
+REDEFTYPE(TUFastInt64, unsigned(TFastInt64));
+REDEFTYPE(TULeastInt8, unsigned(TLeastInt8));
+REDEFTYPE(TULeastInt16, unsigned(TLeastInt16));
+REDEFTYPE(TULeastInt32, unsigned(TLeastInt32));
+REDEFTYPE(TULeastInt64, unsigned(TLeastInt64));
+REDEFTYPE(TUIntMax, unsigned(TIntMax));
+REDEFTYPE(TUIntPtr, unsigned(TIntPtr));
 
-DEFTYPE(TUFastInt8, sizeof(uint_fast8_t));
-DEFTYPE(TUFastInt16, sizeof(uint_fast16_t));
-DEFTYPE(TUFastInt32, sizeof(uint_fast32_t));
-DEFTYPE(TUFastInt64, sizeof(uint_fast64_t));
-
-DEFTYPE(TULeastInt8, sizeof(uint_least8_t));
-DEFTYPE(TULeastInt16, sizeof(uint_least16_t));
-DEFTYPE(TULeastInt32, sizeof(uint_least32_t));
-DEFTYPE(TULeastInt64, sizeof(uint_least64_t));
-
-DEFTYPE(TUIntMax, sizeof(uintmax_t));
-DEFTYPE(TUIntPtr, sizeof(uintptr_t));
-
-///////////////////// C-STYLE TYPES ///////////////////////
-DEFTYPE(TVoid, sizeof(void));
+DEFTYPE(TVoid, 1);
 DEFTYPE(TBool, sizeof(bool));
 DEFTYPE(TFloat, sizeof(float));
 DEFTYPE(TDouble, sizeof(double));
-DEFTYPE(TLongDouble, sizeof(long double));
-
-//------------------// SIGNED DATA //--------------------//
 DEFTYPE(TChar, sizeof(char));
 DEFTYPE(TShort, sizeof(short int));
 DEFTYPE(TInt, sizeof(int));
-DEFTYPE(TLong, sizeof(long int));
-DEFTYPE(TLongLong, sizeof(long long int));
 
 DEFTYPE(TCChar, sizeof(char _Complex));
 DEFTYPE(TCShort, sizeof(short int _Complex));
@@ -196,5 +167,51 @@ DEFTYPE(TUILongLong, sizeof(unsigned long long int _Imaginary));
 
 int Type_Interpret(Type *inst, char const *restrict str_expr);
 int Type_Literalise(Type *inst, char const *buff);
+
+DEFSTATUS(TypeError, 1,
+  "A Type replated error had occurred.",
+  STATUS_ERROR, &ErrorStatus);
+
+DEFSTATUS(InvalidType, 1,
+  "Given Type is not supported.",
+  STATUS_ERROR, &InvalidObject);
+
+DEFSTATUS(InvalidTypeQualifierUsage, 1,
+  "Given object has an invalid Type qualifier combination.",
+  STATUS_ERROR, &TypeError);
+
+DEFSTATUS(NonPointerButRestrict, 1,
+  "The Type qualifier wrongly uses 'restrict' without 'pointer'.",
+  STATUS_ERROR, &InvalidTypeQualifierUsage);
+
+DEFSTATUS(NonFunctionButVariadic, 1,
+  "The Type qualifier wrongly uses 'variadic' without 'function'.",
+  STATUS_ERROR, &InvalidTypeQualifierUsage);
+
+DEFSTATUS(NonPointerButFunction, 1,
+  "The Type qualifier wrongly uses 'function' without 'pointer'.",
+  STATUS_ERROR, &InvalidTypeQualifierUsage);
+
+DEFSTATUS(BothLongAndShort, 1,
+  "The Type qualifier wrongly uses 'long' with 'short'.",
+  STATUS_ERROR, &InvalidTypeQualifierUsage);
+
+DEFSTATUS(BothConstantAndVolatile, 1,
+  "The Type qualifier wrongly uses 'constant' with 'volatile'.",
+  STATUS_ERROR, &InvalidTypeQualifierUsage);
+
+DEFSTATUS(BothConstantAndRegister, 1,
+  "The Type qualifier wrongly uses 'constant' with 'register'.",
+  STATUS_ERROR, &InvalidTypeQualifierUsage);
+
+DEFSTATUS(BothStaticAndRegister, 1,
+  "The Type qualifier wrongly uses 'static' with 'register'.",
+  STATUS_ERROR, &InvalidTypeQualifierUsage);
+
+# ifndef ORA_PROC
+DEFSTATUS(TypeImaginaryIsUnsupported, 1,
+  "Imaginary Type is not supported.",
+  STATUS_ERROR, &InvalidType);
+# endif  /* ORA_PROC */
 
 #endif  /* COMPOUND_TYPE_H */
