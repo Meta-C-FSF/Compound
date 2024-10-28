@@ -59,7 +59,6 @@ Status Memory_Delete(Memory *inst)
   avail(inst);
   state(!alive(*inst), apply(InstanceNotAlive));
   
-  /* Release. */
   Release(*inst);
   
   inst->addr = NULL;
@@ -77,4 +76,13 @@ void Swap(Memory *inst, Memory *other)
   Memory mem = *inst;
   *inst = *other;
   *other = mem;
+}
+
+bool Equals(Memory mem1, Memory mem2)
+{
+  return (
+    mem1.addr == mem2.addr &&
+    Type_Equals(mem1.type, mem2.type) &&
+    mem1.stack == mem2.stack
+  );
 }

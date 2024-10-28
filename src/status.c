@@ -1,3 +1,4 @@
+#include <Compound/common.h>
 #include <Compound/status.h>
 
 Status Location_Literalise(Location *inst, char *buff)
@@ -36,15 +37,6 @@ bool Status_Equal(Status *stat1, Status *stat2)
   );
 }
 
-// void Status_Attach(Status *inst, Status *base)
-// {
-//   /* Skip unavailable inst and base. */
-//   svoid(!inst);
-//   svoid(!base);
-  
-  
-// }
-
 Status Status_Register(Status *inst, Status *buff)
 {
   /* Skip unavailable instance and parameters. */
@@ -65,12 +57,16 @@ Status Status_Literalise(Status *inst, char *buff)
   nonull(buff, apply(UnavailableBuffer));
 
   /* Literalise loc. */
+  // char loc_buff[LITERALISATION_LENGTH_MAXIMUM] = EMPTY;
+  // (void)printf("%s\n", loc_buff);
+  // unsure(Location_Literalise(&inst->loc, loc_buff), !_.value, {
+  //   (void)printf("failed on loc liter.\n");
+  //   return apply(_);
+  // });
   char loc_buff[LITERALISATION_LENGTH_MAXIMUM] = EMPTY;
-  (void)printf("%s\n", loc_buff);
-  unsure(Location_Literalise(&inst->loc, loc_buff), !_.value, {
-    (void)printf("failed on loc liter.\n");
-    return apply(_);
-  });
+  zero(Location_Literalise(&inst->loc, loc_buff).value,
+    return apply(annot(NoBytesWereWritten, ""));
+  );
 
   /* Styling output. */
   // TODO(william): Replace following lines with 

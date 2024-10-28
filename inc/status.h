@@ -112,7 +112,6 @@ bool   Location_Equals(Location lc1, Location lc2);
 Status Status_Literalise(Status *inst, char *buff);
 Status Status_Register(Status *inst, Status *buff);
 bool   Status_Equal(Status *stat1, Status *stat2);
-void   Status_Attach(Status *inst, Status *base);
 void   StatusUtils_Dump(Status *inst, Status *store);
 bool   StatusUtils_HasPrev(Status inst);
 bool   StatusUtils_IsOkay(Status inst);

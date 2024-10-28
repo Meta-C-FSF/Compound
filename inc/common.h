@@ -287,7 +287,7 @@ typedef bool Bit;
 # define ATRANGE(lf, rt, v) \
   (INRANGE(lf, true, rt, true, v)) ? 0 : (((v) < (lf)) ? ((v) - (lf)) : ((v) - (rt)))
 
-# define LITERALISATION_LENGTH_MAXIMUM  0xFFFFL
+# define LITERALISATION_LENGTH_MAXIMUM  8192
 # define STATUS_STACK_LENGTH_MAXIMUM  __COMPOUND_STACK_MAXIMUM__
 
 /* Only effect (probably) when formal Attribute is defined. 

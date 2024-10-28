@@ -1,3 +1,4 @@
+#include <Compound/array.h>
 #include <Compound/catlog.h>
 #include <Compound/common.h>
 #include <Compound/memory.h>
@@ -6,28 +7,70 @@
 #include <Compound/status.h>
 #include <Compound/type.h>
 
-Status MainCatLog(void);
-
-Status Main(void)
+Status Main(void)  // ArrayFunctions
 {
-  int i = 4;
-  while (--i) {
-    char buff[LITERALISATION_LENGTH_MAXIMUM] = EMPTY;
-    zero(Status_Literalise(((Status *)&InvalidLiteralisingBuffer), buff).value,
-      return apply(ReadWriteError););
-    error(buff);
-    
-    info("wow, have\nyou ever been here\nbefore?\n");
+  const char *cstr = "Hello!";
+  const size_t cstr_len = strlen(cstr);
+  
+  Array carr = EMPTY;
+  fail(Array_Create(&carr, cstr_len + 1));
+  
+  (void)printf("=== carr ===\n");
+  for (register size_t i = 0; i < carr.length; i++) {
+    fail(Array_SetIdx(&carr, i, (Memory){
+      .addr = (void *)&cstr[i],
+      .stack = NULL,
+      .type = EMPTY
+    }));
+    (void)printf("@%lu:  %p %s\n", i, carr.data[i].addr, carr.data[i].type.identifier);
+    // Memory curr = EMPTY;
+    // fail(Array_GetIdx(&carr, i, &curr));
+    // (void)putc(cast(curr, char), stdout);
   }
   
-  return MainCatLog();
+  (void)printf("\n");
+  
+  Array carr1 = EMPTY;
+  fail(Array_CopyOf(&carr1, &carr));
+  
+  (void)printf("=== carr1 ===\n");
+  for (register size_t i = 0; i < carr1.length; i++) {
+    (void)printf("@%lu:  %p %s\n", i, carr.data[i].addr, carr.data[i].type.identifier);
+    // Memory curr = EMPTY;
+    // fail(Array_GetIdx(&carr1, i, &curr));
+    // (void)putc(cast(curr, char), stdout);
+  }
+
+  (void)printf("lengths: %lu vs %lu\n", carr.length, carr1.length);
+  (void)printf("Equals: %d\n", Array_Equals(&carr, &carr1));
+  
+  fail(Array_Delete(&carr1));
+  fail(Array_Delete(&carr));
+  
+  return apply(NormalStatus);
+}
+
+Status MainLoggingErrorStatus(void)
+{
+  char buff[LITERALISATION_LENGTH_MAXIMUM] = EMPTY;
+  zero(Status_Literalise(((Status *)&InvalidLiteralisingBuffer), buff).value,
+       return apply(ReadWriteError););
+  error(buff);
+
+  return apply(NormalStatus);
 }
 
 Status MainCatLog(void)
 {
+  FILE *fp = NULL;
+  if (!(fp = fopen("/tmp/catlog", "w"))) {
+    warning("Failed to open file.");
+    return apply(ReadWriteError);
+  }
+  
   redir(stdout);
   filter(0);
-  
+
   lowest("abab");
   debug("buggy~");
   info("what are you talking about?\nidk");  // Multi-line interrupt
@@ -35,7 +78,7 @@ Status MainCatLog(void)
   error("haha!");
   fatal("omg");
   highest("im everything");
-  
+
   info("1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 "
        "27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 "
        "50");
@@ -50,38 +93,16 @@ Status MainCatLog(void)
   // (void)printf("input string length: %lu\n", strlen(buff));
   // info(buff);
 
-  FILE *fp = NULL;
-  if (!(fp = fopen("/tmp/catlog", "w"))) {
-    warning("Failed to open file.");
-    return apply(ReadWriteError);
-  }
-
   redir(fp);
 
   info("info");
   
   (void)fclose(fp);
   
-  warning("This message will not be sent successfully.");
-  
   redir(stdout);
   
-  debug("You found me!!");
-  
-  // FILE *fp = fopen("/tmp/catlog", "w");
-  // redir(fp);
-  
-  // regular("what are you talking about?");
-  // critical("haha!");
-  // none("abab");
-  // minor("minority");
-  // fatal("omg");
-  // debug("buggy~");
-  // major("im big");
-  // all("im everything");
-  
-  // (void)fclose(fp);
-  
+  debug("You found me!!\nCongradulations!!!\n");
+
   return apply(NormalStatus);
 }
 

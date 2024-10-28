@@ -26,5 +26,6 @@ Status Memory_Delete(Memory *inst);
 
 /* Utilities. */
 void Swap(Memory *inst, Memory *other);
+bool Equals(Memory mem1, Memory mem2);
 
 #endif  /* COMPOUND_MEMORY_H */

@@ -14,7 +14,8 @@ set(SHARED_SOURCE
   src/stack.c
   src/status.c
   src/catlog.c
-  src/memory.c)
+  src/memory.c
+  src/array.c)
 
 set(LIBCOMPOUND_SOURCE ${SHARED_SOURCE})
 

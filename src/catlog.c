@@ -5,19 +5,18 @@ Status CatlogMsg_Create(CatlogMsg *inst, CatlogLevel level,
 {
   /* Skip unavailable instances and parameters. */
   nonull(inst, apply(UnavailableInstance));
-  state((initiator == NULL || content == NULL),
-    apply(InvalidParameter));
+  state((!initiator || !content), apply(UnavailableBuffer));
   state(strlen(initiator) > CATLOG_MESSAGE_INITIATOR_LENGTH_MAXIMUM,
     apply(CatMessageInitiatorTooLong));
   state(strlen(content) > CATLOG_MESSAGE_CONTENT_LENGTH_MAXIMUM,
     apply(CatMessageContentTooLong));
 
-	inst->time = time(NULL);
-	inst->level = level;
+  inst->time = time(NULL);
+  inst->level = level;
   (void)strncpy(inst->initiator, initiator, CATLOG_MESSAGE_INITIATOR_LENGTH_MAXIMUM);
   (void)strncpy(inst->content, content, CATLOG_MESSAGE_CONTENT_LENGTH_MAXIMUM);
 
-	return apply(NormalStatus);
+  return apply(NormalStatus);
 }
 
 Status CatlogMsg_CopyOf(CatlogMsg *inst, CatlogMsg *other)
@@ -26,9 +25,9 @@ Status CatlogMsg_CopyOf(CatlogMsg *inst, CatlogMsg *other)
   nonull(inst, apply(UnavailableInstance));
   nonull(other, apply(InvalidParameter));
 
-	*inst = *other;
+  *inst = *other;
 
-	return apply(NormalStatus);
+  return apply(NormalStatus);
 }
 
 bool CatlogMsg_Equals(CatlogMsg *inst, CatlogMsg *other)
@@ -36,12 +35,12 @@ bool CatlogMsg_Equals(CatlogMsg *inst, CatlogMsg *other)
   /* Skip unavailable instances and parameters. */
   state((!inst || other == NULL), false);
 
-	return (
-		inst->time == other->time &&
-		inst->level == other->level &&
-		(!strcmp(inst->initiator, other->initiator)) &&
-		(!strcmp(inst->content, other->content))
-	);
+  return (
+    inst->time == other->time &&
+    inst->level == other->level &&
+    (!strcmp(inst->initiator, other->initiator)) &&
+    (!strcmp(inst->content, other->content))
+  );
 }
 
 Status CatlogSender_Initialise(CatlogSender *inst, CatlogMsg msg, FILE *dst)
@@ -107,7 +106,7 @@ Status CatlogSender_Send(CatlogSender *inst)
 
   /* Write buffer for header, including timestamp. */
   char header_buffer[CATLOG_MESSAGE_CONTENT_LENGTH_MAXIMUM] = EMPTY;
-  zero(sprintf(header_buffer, CATLOG_MESSAGE_FORMAT, tmbuff,
+  zero(sprintf(header_buffer, CATLOG_MESSAGE_HEADER_FORMAT, tmbuff,
                strlvl(inst->msg.level), inst->msg.initiator),
        return apply(annot(NoBytesWereWritten,
                           "Failed to write content into buffer for CatLog.")));
@@ -138,28 +137,4 @@ Status CatlogSender_Send(CatlogSender *inst)
   }
 
   return apply(NormalStatus);
-}
-
-Status CatlogUtils_OpenFile(FILE *target, const char *filepath,
-  const char *restrict mode)
-{
-  /* Skip unavailable instances and parameters. */
-  nonull(target, apply(UnavailableBuffer));
-  nonull(filepath, apply(UnavailableFileName));
-  nonull(mode, apply(UnavailableFileAccessMode));
-
-  /* Open the file.  Return CatCannotOpenFile once failed. */
-  state(!(target = fopen(filepath, mode)),
-    apply(CatCannotOpenFile));
-
-  return apply(NormalStatus);
-}
-
-Status CatlogUtils_CloseFile(FILE *fileptr)
-{
-  /* Skip if either the fileptr or the *fileptr is unavailable. */
-  state(!fileptr || !fileptr, apply(UnavailableParameter));
-
-  /* Return returning code of fclose, sealed with "value". */
-  return apply(value(UnknownStatus, fclose(fileptr)));
 }

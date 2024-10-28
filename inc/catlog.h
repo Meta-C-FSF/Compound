@@ -6,8 +6,8 @@
 
 # define CATLOG_MESSAGE_CONTENT_LENGTH_MAXIMUM  256
 # define CATLOG_MESSAGE_INITIATOR_LENGTH_MAXIMUM  32
-//                               time lvl  init  msg
-# define CATLOG_MESSAGE_FORMAT  "[%s] (%s) @%s:\t"
+//                                      time lvl  init
+# define CATLOG_MESSAGE_HEADER_FORMAT  "[%s] (%s) @%s:\t"
 
 DEFSTATUS(CatCannotSendMessage, 1,
   "Cat had trouble while sending your message.",
@@ -92,9 +92,6 @@ Status CatlogSender_Initialise(CatlogSender *inst, CatlogMsg msg, FILE *dst);
 Status CatlogSender_CopyOf(CatlogSender *inst, CatlogSender *other);
 Status CatlogSender_Send(CatlogSender *inst);
 bool   CatlogSender_Equals(CatlogSender *inst, CatlogSender *other);
-Status CatlogUtils_OpenFile(FILE *fileptr, const char *filepath,
-                            const char *restrict mode);
-Status CatlogUtils_CloseFile(FILE *fileptr);
 
 static CatlogSender GlobalCat = EMPTY;
 
