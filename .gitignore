@@ -26,3 +26,9 @@ test.sh
 expansion_formatted.txt
 live*
 gen_type_attr.c
+*-workspace
+build/
+.cache/
+*.drawio
+build.sh
+

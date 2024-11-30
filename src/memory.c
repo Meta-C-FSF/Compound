@@ -1,74 +1,70 @@
+#include <Compound/common.h>
 #include <Compound/memory.h>
+#include <Compound/type.h>
 
-Memory Allocate(Type type, size_t quantity)
+Memory Memory_Allocate(Type type, size_t quantity)
 {
+  if (!quantity)  return (Memory)EMPTY;
+
   return (Memory) {
-    .addr = calloc((!quantity ? (1) : quantity), type.size),
-    .type = type,
-    .stack = NULL
+    .addr = calloc(quantity, type.size),
+    .type = type
   };
 }
 
-Memory Reallocate(Memory mem, Type type)
+Memory Memory_Reallocate(Memory mem, Type type)
 {
   return (Memory) {
     .addr = realloc(mem.addr, type.size),
-    .type = type,
-    .stack = NULL
+    .type = type
   };
 }
 
-void Release(Memory mem)
+void Memory_Release(Memory mem)
 {
+  /* Skip non-alive instances. */
+  svoid(!mem.addr);
+
   free(mem.addr);
 }
 
-Status Memory_Create(Memory *inst, Type type, Stack *stack)
+Status Memory_Create(Memory *inst, Type type)
 {
   avail(inst);
-  state(alive(*inst), apply(InstanceStillAlive));
-  avail(stack);
+  state(alive(*inst), (InstanceStillAlive));
   
-  /* Preserve in @stack. */
-  state(Stack_Full(stack), apply(StackFull));
+  /* Memory_Allocate for @inst. */
+  *inst = Memory_Allocate(type, 0);
   
-  /* Allocate for @inst. */
-  *inst = Allocate(type, 0);
-  
-  /* Register in @stack. */
-  state(!Stack_Push(stack, inst->addr),
-    apply(annot(StackError, "Failed to push.")));
-  
-  return apply(NormalStatus);
+  RETURN(NormalStatus);
 }
 
-Status Memory_CopyOf(Memory *inst, Memory *other)
+Status Memory_CopyOf(Memory *inst, const Memory *other)
 {
   avail(inst);
-  state(alive(*inst), apply(InstanceStillAlive));
+  state(alive(*inst), (InstanceStillAlive));
   avail(other);
-  state(!alive(*other), apply(SourceNotAlive));
+  state(!alive(*other), (SourceNotAlive));
   
   *inst = *other;
   
-  return apply(NormalStatus);
+  RETURN(NormalStatus);
 }
 
 Status Memory_Delete(Memory *inst)
 {
   avail(inst);
-  state(!alive(*inst), apply(InstanceNotAlive));
+  state(!alive(*inst), (InstanceNotAlive));
   
-  Release(*inst);
+  Memory_Release(*inst);
   
   inst->addr = NULL;
   inst->type = (Type)EMPTY;
-  inst->stack = NULL;
   
-  return apply(NormalStatus);
+  RETURN(NormalStatus);
 }
 
-void Swap(Memory *inst, Memory *other)
+void Memory_Swap(Memory *inst, Memory *other)
 {
   svoid(!inst);
   svoid(!other);
@@ -78,11 +74,24 @@ void Swap(Memory *inst, Memory *other)
   *other = mem;
 }
 
-bool Equals(Memory mem1, Memory mem2)
+bool Memory_Equals(Memory mem1, Memory mem2)
 {
   return (
     mem1.addr == mem2.addr &&
-    Type_Equals(mem1.type, mem2.type) &&
-    mem1.stack == mem2.stack
+    Type_Equals(mem1.type, mem2.type)
   );
+}
+
+size_t Memory_Literalise(const Memory mem, char *buff)
+{
+  if (!buff)  return 0;
+  
+  size_t written = 0;
+  
+  /* Literalise type. */
+  char type_buff[LITERALISATION_LENGTH_MAXIMUM] = EMPTY;
+  written += Type_Literalise(mem.type, type_buff);
+  
+  return snprintf(buff, LITERALISATION_LENGTH_MAXIMUM,
+                  MEMORY_LITERALISATION_FORMAT, mem.addr, type_buff) + written;
 }

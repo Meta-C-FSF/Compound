@@ -75,74 +75,27 @@ typedef struct _Status {
 # define STATUS_LITERALISE_FORMAT \
     "%s:  \"%s\"\n\tpredecessor=<%s> value=(%d) characteristic=(%d)\n\t%s"
 
-// typedef thrd_start_t  ArgueStart;
-
-// typedef struct {
-//   ArgueStart handler;
-//   void *external_param;
-// } ArgueStartParam;
-
-// /* Argument levels (qualities) */
-// typedef enum {
-//   ARGUMENT_NONE = 0,
-//   ARGUMENT_MINOR,
-//   ARGUMENT_NORMAL,
-//   ARGUMENT_MAJOR,
-//   ARGUMENT_CRITICAL,
-//   ARGUMENT_SEVERE,
-//   ARGUMENT_ALL,
-// } ArgumentLevel;
-
-// typedef struct {
-//   ReportSender stream;
-//   ArgueStartParam handler;  // Obsolete?
-//   ArgumentLevel level;
-//   bool muted;
-// } Argument;
-
-// typedef struct {
-//   Argument *members;
-//   int (*announcer) (Argument);
-// } ArgumentAnnouncer;
-
 # define STATUS_REGISTRY_BUFFER_MAXIMUM_LENGTH  0xFFFF
 
-Status Location_Literalise(Location *inst, char *buff);
-bool   Location_Equals(Location lc1, Location lc2);
-Status Status_Literalise(Status *inst, char *buff);
-Status Status_Register(Status *inst, Status *buff);
-bool   Status_Equal(Status *stat1, Status *stat2);
-void   StatusUtils_Dump(Status *inst, Status *store);
-bool   StatusUtils_HasPrev(Status inst);
-bool   StatusUtils_IsOkay(Status inst);
-bool   StatusUtils_IsRecursive(Status inst);
-int    StatusUtils_Depth(Status *inst);
-
-// Status
-// arguestarter_create(ArgueStartParam *inst, void *external_param);
-// Status
-// arguestarter_constr(ArgueStartParam *inst, ArgueStart argue_start,
-//                     void *external_param);
-// Status
-// arguestarter_start(ArgueStartParam *inst);
-// bool
-// arguestarter_equal(ArgueStartParam *inst1, ArgueStartParam *inst2);
-// Status arguestarter_current(void);
-// Status arguestarter_sleep(const struct timespec *time_point,
-//                           struct timespec *remaining);
-// void arguestarter_exit(int code) __attribute__ ((__noreturn__));
-// Status arguestarter_join(ArgueStart thrd);
-
-
-// Status
-// argument_create(Argument *inst, ReportSender *streams, ArgueStartParam handler,
-//                 int level, bool muted);
+/* Returns bytes written. */
+size_t Location_Literalise(const Location inst, char *buff);
+bool   Location_Equals(const Location loc1, const Location loc2);
+/* Returns bytes written. */
+size_t Status_Literalise(const Status inst, char *buff);
+bool   Status_Equal(const Status stat1, const Status stat2);
+bool   Status_Match(const Status stat1, const Status stat2);
+bool   Status_Belong(const Status stat1, const Status stat2);
+void   StatusUtils_Dump(const Status inst, Status *store);
+bool   StatusUtils_HasPrev(const Status inst);
+bool   StatusUtils_IsOkay(const Status inst);
+bool   StatusUtils_IsRecursive(const Status inst);
+int    StatusUtils_Depth(const Status inst);
 
 // ---------------------ELEMENTARY-------------------------
 
-DEFSTATUS(UnknownStatus, -1, "An unknown status.", STATUS_UNKNOWN, &UnknownStatus);
-DEFSTATUS(NormalStatus, 0, "A normal status.", STATUS_NORMAL, &NormalStatus);
-DEFSTATUS(ErrorStatus, 1, "An error status.", STATUS_ERROR, &ErrorStatus);
+DEFSTATUS(UnknownStatus, -1, "Status Unknown.", STATUS_UNKNOWN, &UnknownStatus);
+DEFSTATUS(NormalStatus, 0, "Status Normal.", STATUS_NORMAL, &NormalStatus);
+DEFSTATUS(ErrorStatus, 1, "Status Error.", STATUS_ERROR, &ErrorStatus);
 
 // ----------------------EXTENDED--------------------------
 
@@ -154,7 +107,7 @@ DEFSTATUS(MemoryViolation, 1,
   "Illegal access on certain memory address.",
   STATUS_ERROR, &ErrorStatus);
 
-DEFSTATUS(NullPointerEncountered, 1,
+DEFSTATUS(NullPointerInvolved, 1,
   "Trying to operate with a null pointer.",
   STATUS_ERROR, &ErrorStatus);
 
@@ -214,6 +167,10 @@ DEFSTATUS(StoreNotAlive, 1,
   "Given object for storing was not alive.",
   STATUS_ERROR, &InstanceNotAlive);
 
+DEFSTATUS(StoreStillAlive, 1,
+  "Given object for storing was still alive.",
+  STATUS_ERROR, &InstanceStillAlive);
+
 DEFSTATUS(InvalidOperationBetweenAliveAndNonAlive, 1,
   "Given two instances were incompatible with each other for any operation.",
   STATUS_ERROR, &InvalidOperation);
@@ -242,10 +199,7 @@ DEFSTATUS(ImprecisionError, 1,
   "Precision was not enough for handling the calculation.",
   STATUS_ERROR, &RuntimeError);
 
-
-// ---------------------USER DEFINED-----------------------
-
-// The meaning of value is defined by the function itself.
+// The value is the returning one from the function called.
 DEFSTATUS(TraditionalFunctionReturn, 0,
   "Function has returned an integer.",
   STATUS_UNKNOWN, &UnknownStatus);
@@ -256,7 +210,7 @@ DEFSTATUS(RecursionTerminated, 0,
 
 DEFSTATUS(UnavailableInstance, 1,
   "An unavailable instance was presented.",
-  STATUS_ERROR, &NullPointerEncountered);
+  STATUS_ERROR, &NullPointerInvolved);
 
 DEFSTATUS(UnavailableIdentifier, 1,
   "Given identifier was unavailable.",
@@ -367,7 +321,7 @@ static Status PrintStatus(Status s)
   
   /* Handle returning value. */
   /* No bytes were written to buffer. */
-  zero(Status_Literalise(&s, buff).value, {
+  zero(Status_Literalise(s, buff), {
     return apply(NoBytesWereWritten);
   })
 
@@ -382,9 +336,9 @@ static void PrintStatusDump(Status s)
 {
   /* Create dump. */
   /* Calculate depth for dumping. */
-  const int dump_len = StatusUtils_Depth(&s);
+  const int dump_len = StatusUtils_Depth(s);
 
-  /* Skip when "s" is either unavailable or is at the buttom of status stack. */
+  /* Skip when "s" is either unavailable or is at the bottom of status stack. */
   if (dump_len == -1) {
     PrintStatus(s);
     return;
@@ -396,7 +350,7 @@ static void PrintStatusDump(Status s)
   for (register int i = 1; i < dump_len; i++) {
     // StatusUtils_Dump will only access (storage) the prev.
     // It does not include this status itself.
-    StatusUtils_Dump(&current, &dump[i]);
+    StatusUtils_Dump(current, &dump[i]);
     
     current = *current.prev;
   }
@@ -404,7 +358,7 @@ static void PrintStatusDump(Status s)
   /* Output by iterating. */
   for (register int i = 0; i < dump_len; i++) {
     /* Print out indexer. */
-    (void)printf("\e[1m[%d/%d]\e[0m", (dump_len - i), dump_len);
+    // (void)printf("\e[1m[%d/%d]\e[0m", (dump_len - i), dump_len);
     
     /* Print dumped status. */
     unsure(PrintStatus(dump[i]), !_.value, {

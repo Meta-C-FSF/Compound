@@ -1,70 +1,74 @@
 #include <Compound/catlog.h>
+#include <Compound/status.h>
 
-Status CatlogMsg_Create(CatlogMsg *inst, CatlogLevel level,
-  const char *initiator, const char *content)
+Status CatlogMessage_Create(CatlogMessage *inst, CatlogLevel level,
+                            const char *initiator, const char *fmt, ...)
 {
-  /* Skip unavailable instances and parameters. */
-  nonull(inst, apply(UnavailableInstance));
-  state((!initiator || !content), apply(UnavailableBuffer));
+  avail(inst);
+  state((!initiator), (UnavailableBuffer));
   state(strlen(initiator) > CATLOG_MESSAGE_INITIATOR_LENGTH_MAXIMUM,
-    apply(CatMessageInitiatorTooLong));
-  state(strlen(content) > CATLOG_MESSAGE_CONTENT_LENGTH_MAXIMUM,
-    apply(CatMessageContentTooLong));
+        CatMessageInitiatorTooLong);
 
   inst->time = time(NULL);
   inst->level = level;
-  (void)strncpy(inst->initiator, initiator, CATLOG_MESSAGE_INITIATOR_LENGTH_MAXIMUM);
-  (void)strncpy(inst->content, content, CATLOG_MESSAGE_CONTENT_LENGTH_MAXIMUM);
+  (void)strncpy(inst->initiator, initiator,
+                CATLOG_MESSAGE_INITIATOR_LENGTH_MAXIMUM);
+  
+  va_list ap;
+  va_start(ap, fmt);
+  const int rtncode =
+    vsnprintf(inst->content, CATLOG_MESSAGE_CONTENT_LENGTH_MAXIMUM, fmt, ap);
+  va_end(ap);
+  
+  if (rtncode < 0) {
+    RETURN(value(annot(RuntimeError, "Failed on "nameof(vsnprintf)".  "
+                       "Value preserved."), rtncode));
+  }
 
-  return apply(NormalStatus);
+  RETURN(NormalStatus);
 }
 
-Status CatlogMsg_CopyOf(CatlogMsg *inst, CatlogMsg *other)
+Status CatlogMessage_CopyOf(CatlogMessage *inst, CatlogMessage *other)
 {
-  /* Skip unavailable instances and parameters. */
-  nonull(inst, apply(UnavailableInstance));
-  nonull(other, apply(InvalidParameter));
+  nonull(inst, (UnavailableInstance));
+  nonull(other, (InvalidParameter));
 
-  *inst = *other;
+  inst->time = other->time;
+  inst->level = other->level;
+  (void)strncpy(inst->initiator, other->initiator,
+                CATLOG_MESSAGE_INITIATOR_LENGTH_MAXIMUM);
+  (void)strncpy(inst->content, other->content,
+                CATLOG_MESSAGE_CONTENT_LENGTH_MAXIMUM);
 
-  return apply(NormalStatus);
+  RETURN(NormalStatus);
 }
 
-bool CatlogMsg_Equals(CatlogMsg *inst, CatlogMsg *other)
+bool CatlogMessage_Equals(CatlogMessage *inst, CatlogMessage *other)
 {
-  /* Skip unavailable instances and parameters. */
-  state((!inst || other == NULL), false);
+  vstate(!inst || other == NULL, false);
 
-  return (
-    inst->time == other->time &&
-    inst->level == other->level &&
-    (!strcmp(inst->initiator, other->initiator)) &&
-    (!strcmp(inst->content, other->content))
-  );
+  return (inst->time == other->time && inst->level == other->level &&
+          (!strcmp(inst->initiator, other->initiator)) &&
+          (!strcmp(inst->content, other->content)));
 }
 
-Status CatlogSender_Initialise(CatlogSender *inst, CatlogMsg msg, FILE *dst)
+Status CatlogSender_Create(CatlogSender *inst, CatlogMessage msg, FILE *dst)
 {
-  /* Skip unavailable instances and parameters. */
-  nonull(inst, apply(UnavailableInstance));
+  nonull(inst, (UnavailableInstance));
 
   /* Copy and assign. */
   inst->msg = msg;
   inst->dst = (!dst ? stdout : dst);
   inst->successful = false;
-  inst->elapsed = (struct timespec) {
-    .tv_sec = 0,
-    .tv_nsec = 0
-  };
+  inst->elapsed = (struct timespec){.tv_sec = 0, .tv_nsec = 0};
 
-  return apply(NormalStatus);
+  RETURN(NormalStatus);
 }
 
 Status CatlogSender_CopyOf(CatlogSender *inst, CatlogSender *other)
 {
-  /* Skip unavailable instances and parameters. */
-  nonull(inst, apply(UnavailableInstance));
-  nonull(other, apply(InvalidParameter));
+  nonull(inst, (UnavailableInstance));
+  nonull(other, (InvalidParameter));
 
   /* Copy and assign */
   inst->msg = other->msg;
@@ -72,69 +76,91 @@ Status CatlogSender_CopyOf(CatlogSender *inst, CatlogSender *other)
   inst->successful = other->successful;
   inst->elapsed = other->elapsed;
 
-  return apply(NormalStatus);
+  RETURN(NormalStatus);
+}
+
+Status CatlogSender_Delete(CatlogSender *inst)
+{
+  avail(inst);
+
+  inst->msg = (CatlogMessage)EMPTY;
+  inst->dst = NULL;
+  inst->successful = false;
+  inst->elapsed = (struct timespec)EMPTY;
+
+  RETURN(NormalStatus);
 }
 
 bool CatlogSender_Equals(CatlogSender *inst, CatlogSender *other)
 {
-  /* Skip unavailable instances and parameters. */
-  state((!inst || other == NULL), false);
+  vstate(!inst || other == NULL, false);
 
-  return (
-    CatlogMsg_Equals(&inst->msg, &other->msg) &&
-    inst->dst == other->dst &&
-    inst->successful == other->successful &&
-    ((inst->elapsed.tv_sec == other->elapsed.tv_sec) &&
-    (inst->elapsed.tv_nsec == other->elapsed.tv_nsec))
-  );
+  return (CatlogMessage_Equals(&inst->msg, &other->msg) &&
+          inst->dst == other->dst && inst->successful == other->successful &&
+          ((inst->elapsed.tv_sec == other->elapsed.tv_sec) &&
+           (inst->elapsed.tv_nsec == other->elapsed.tv_nsec)));
 }
 
 Status CatlogSender_Send(CatlogSender *inst)
 {
-  /* Skip unavailable instances and parameters. */
-  nonull(inst, apply(UnavailableInstance));
+  nonull(inst, (UnavailableInstance));
 
   /* Filtering. */
-  state(inst->msg.level < inst->filter, apply(CatMessageSuppressed));
+  state(inst->msg.level < inst->filter, (CatMessageSuppressed));
 
-  /* Write buffer for timestamp. */
+  /* Literalise time. */
   char tmbuff[30] = EMPTY;
   zero(strftime(tmbuff, CATLOG_MESSAGE_CONTENT_LENGTH_MAXIMUM, "%c",
-    localtime(&inst->msg.time)),
-    return apply(annot(NoBytesWereWritten,
-      "Failed to write formatted time into buffer for CatLog.")));
+                localtime(&inst->msg.time)),
+       RETURN(annot(NoBytesWereWritten,
+                    "Failed to write formatted time into buffer for CatLog.")));
 
-  /* Write buffer for header, including timestamp. */
+  /* Literalise header. */
   char header_buffer[CATLOG_MESSAGE_CONTENT_LENGTH_MAXIMUM] = EMPTY;
   zero(sprintf(header_buffer, CATLOG_MESSAGE_HEADER_FORMAT, tmbuff,
                strlvl(inst->msg.level), inst->msg.initiator),
-       return apply(annot(NoBytesWereWritten,
-                          "Failed to write content into buffer for CatLog.")));
+       RETURN(annot(NoBytesWereWritten,
+                    "Failed to write content into buffer for CatLog.")));
+
   const size_t header_buffer_len = strlen(header_buffer);
 
-  /* Write into @inst->dst with lines according to new-line character. */
+  /* Tokenise with @NEWLINE. */
   char *tok = strtok(inst->msg.content, NEWLINE);
   while (tok) {
     zero(
-      fwrite(header_buffer, sizeof(header_buffer[0]),
-        header_buffer_len, inst->dst),
-      return apply(annot(ReadWriteError,
-        "No bytes were written into buffer for header_buffer."));
-    );
+        fwrite(header_buffer, sizeof(header_buffer[0]), header_buffer_len,
+               inst->dst),
+        RETURN(annot(ReadWriteError,
+                     "No bytes were written into buffer for header_buffer.")););
+    zero(fwrite(tok, sizeof(inst->msg.content[0]), strlen(inst->msg.content),
+                inst->dst),
+         RETURN(annot(ReadWriteError,
+                      "No bytes were written into buffer for content.")););
     zero(
-      fwrite(tok, sizeof(inst->msg.content[0]),
-        strlen(inst->msg.content), inst->dst),
-      return apply(annot(ReadWriteError,
-        "No bytes were written into buffer for content."));
-    );
-    zero(
-      fwrite(NEWLINE, sizeof(NEWLINE), strlen(NEWLINE), inst->dst),
-      return apply(annot(ReadWriteError,
-        "No bytes were written into buffer for line wrapping character for "
-        "content."));
-    );
+        fwrite(NEWLINE, sizeof(NEWLINE), strlen(NEWLINE), inst->dst),
+        RETURN(annot(
+            ReadWriteError,
+            "No bytes were written into buffer for line wrapping character for "
+            "content.")););
     tok = strtok(NULL, NEWLINE);
   }
 
-  return apply(NormalStatus);
+  RETURN(NormalStatus);
+}
+
+Status cat(CATS, CatlogLevel lvl, const char *initiator, const char *fmt, ...)
+{
+  va_list ap;
+  va_start(ap, fmt);
+  Status create = CatlogMessage_Create(&cs->msg, lvl, initiator, fmt, ap);
+  va_end(ap);
+  
+  notok(create, {
+    RETURN(_);
+  })
+  
+  /* Send out the message. */
+  fail(CatlogSender_Send(cs));
+
+  RETURN(NormalStatus);
 }

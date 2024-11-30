@@ -1,11 +1,14 @@
 #ifndef COMPOUND_CATLOG_H
 # define COMPOUND_CATLOG_H
 
+# include <stdarg.h>
+
 # include <Compound/common.h>
 # include <Compound/status.h>
+# include <Compound/status_stack.h>
 
-# define CATLOG_MESSAGE_CONTENT_LENGTH_MAXIMUM  256
-# define CATLOG_MESSAGE_INITIATOR_LENGTH_MAXIMUM  32
+# define CATLOG_MESSAGE_CONTENT_LENGTH_MAXIMUM  1024
+# define CATLOG_MESSAGE_INITIATOR_LENGTH_MAXIMUM  64
 //                                      time lvl  init
 # define CATLOG_MESSAGE_HEADER_FORMAT  "[%s] (%s) @%s:\t"
 
@@ -73,57 +76,51 @@ typedef struct {
 	CatlogLevel level;
 	char initiator[CATLOG_MESSAGE_INITIATOR_LENGTH_MAXIMUM];
 	char content[CATLOG_MESSAGE_CONTENT_LENGTH_MAXIMUM];
-} CatlogMsg;
+} CatlogMessage;
 
-Status CatlogMsg_Create(CatlogMsg *inst, CatlogLevel level,
-  const char *initiator, const char *content);
-Status CatlogMsg_CopyOf(CatlogMsg *inst, CatlogMsg *other);
-bool   CatlogMsg_Equals(CatlogMsg *inst, CatlogMsg *other);
+Status CatlogMessage_Create(CatlogMessage *inst, CatlogLevel level,
+  const char *initiator, const char *fmt, ...);
+Status CatlogMessage_CopyOf(CatlogMessage *inst, CatlogMessage *other);
+bool   CatlogMessage_Equals(CatlogMessage *inst, CatlogMessage *other);
 
 typedef struct {
-	CatlogMsg msg;
+	CatlogMessage msg;
 	FILE *dst;
 	bool successful;
 	struct timespec elapsed;
   CatlogLevel filter;
 } CatlogSender;
 
-Status CatlogSender_Initialise(CatlogSender *inst, CatlogMsg msg, FILE *dst);
-Status CatlogSender_CopyOf(CatlogSender *inst, CatlogSender *other);
-Status CatlogSender_Send(CatlogSender *inst);
-bool   CatlogSender_Equals(CatlogSender *inst, CatlogSender *other);
+static CatlogSender *GlobalCatlogSender = NULL;
 
-static CatlogSender GlobalCat = EMPTY;
-
-/* Shortcut for sending a CatLog. */
-// # define cat(lvl, str)  {\
-//   CatlogMsg msg = EMPTY;\
-//   notok(CatlogMsg_Create(&msg, lvl, (char *)__func__, str), PrintStatusDump(_););\
-//   fail(CatlogSender_Initialise(&GlobalCat, &msg,\
-//     (!GlobalCat.dst ? (stdout) : GlobalCat.dst)));\
-//   fail(CatlogSender_Send(&GlobalCat));\
-// }
-
-static inline Status cat(CatlogLevel lvl, const char *initiator,
-  const char *content)
+static inline void CatlogSender_SetGlobal(CatlogSender *inst)
 {
-  CatlogMsg msg = EMPTY;
-  fail(CatlogMsg_Create(&msg, lvl, initiator, content));
-  fail(CatlogSender_Initialise(&GlobalCat, msg, GlobalCat.dst));
-  fail(CatlogSender_Send(&GlobalCat));
-  
-  return apply(NormalStatus);
+  svoid(!inst);
+
+  GlobalCatlogSender = inst;
 }
 
+/* Shorthand for declaring CatlogSender @cs in function parameters.
+   "CATS" stands for "Catlog Sender". */
+# define CATS  CatlogSender *cs
+
+Status CatlogSender_Create(CatlogSender *inst, CatlogMessage msg, FILE *dst);
+Status CatlogSender_CopyOf(CatlogSender *inst, CatlogSender *other);
+Status CatlogSender_Delete(CatlogSender *inst);
+Status CatlogSender_Send(CatlogSender *inst);
+bool   CatlogSender_Equals(CatlogSender *inst, CatlogSender *other);
+Status cat(CATS, CatlogLevel lvl, const char *initiator, const char *fmt, ...);
+
 /* Preset cats. */
-# define lowest(str)   cat(CATLOG_LEVEL_ALL, __func__, str)
-# define debug(str)    cat(CATLOG_LEVEL_DEBUG, __func__, str)
-# define info(str)     cat(CATLOG_LEVEL_NORMAL, __func__, str)
-# define warning(str)  cat(CATLOG_LEVEL_MAJOR, __func__, str)
-# define error(str)    cat(CATLOG_LEVEL_CRITICAL, __func__, str)
-# define fatal(str)    cat(CATLOG_LEVEL_FATAL, __func__, str)
-# define highest(str)  cat(CATLOG_LEVEL_NONE, __func__, str)
-# define redir(dst)    CatlogSender_Initialise(&GlobalCat, (CatlogMsg)EMPTY, (dst));
-# define filter(lvl)   GlobalCat.filter = (lvl)
+# define lowest(fmt, ...)  cat(cs, CATLOG_LEVEL_DEBUG, __func__, fmt, __VA_ARGS__)
+# define debug(fmt, ...)  cat(cs, CATLOG_LEVEL_DEBUG, __func__, fmt, __VA_ARGS__)
+# define info(fmt, ...)  cat(cs, CATLOG_LEVEL_DEBUG, __func__, fmt, __VA_ARGS__)
+# define warning(fmt, ...)  cat(cs, CATLOG_LEVEL_DEBUG, __func__, fmt, __VA_ARGS__)
+# define error(fmt, ...)  cat(cs, CATLOG_LEVEL_DEBUG, __func__, fmt, __VA_ARGS__)
+# define fatal(fmt, ...)  cat(cs, CATLOG_LEVEL_DEBUG, __func__, fmt, __VA_ARGS__)
+# define highest(fmt, ...)  cat(cs, CATLOG_LEVEL_DEBUG, __func__, fmt, __VA_ARGS__)
+
+# define redir(file)  cs->dst = (file)
+# define filter(lvl)  cs->filter = (lvl)
 
 #endif  /* COMPOUND_CATLOG_H */

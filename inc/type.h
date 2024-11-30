@@ -7,11 +7,17 @@
 # include <Compound/common.h>
 # include <Compound/status.h>
 
+//                                    "id":size(qualifier)
+# define TYPE_LITERALISATION_FORMAT  "\"%s\":%lu(%u)"
+
 typedef struct {
   char *identifier;
   size_t size;
   unsigned int qualifier;
 } Type;
+
+/* Type declaration. */
+# define Type(T)  Type
 
 enum {
   TYPE_QUALIFIER_NULL      = 0b0000000000000,
@@ -50,7 +56,7 @@ enum {
 
 /* Reassign size. */
 # define resize(Ty, sz)  ((Type) {                         \
-  .identifier = nameof(Ty),                                \
+  .identifier = Ty.identifier                              \
   .size = sz,                                              \
   .qualifier = Ty.qualifier                                \
 })
@@ -69,8 +75,8 @@ enum {
   .qualifier = ((Ty.qualifier) | (quality))                \
 })
 
-# define wide(Ty)  resize((Ty), ((Ty).size * 2))
-# define narrow(Ty)  resize((Ty), ((Ty).size / 2))
+# define wide(Ty)  resize(Ty, ((Ty).size * 2))
+# define narrow(Ty)  resize(Ty, ((Ty).size / 2))
 
 # define long(Ty)       (wide(qualify(Ty, (1 << 0))))
 # define short(Ty)      (narrow(qualify(Ty, (1 << 1))))
@@ -78,7 +84,7 @@ enum {
 # define pointer(Ty)    (qualify(Ty, (1 << 3)))
 # define restrict(Ty)   (qualify(Ty, (1 << 4)))
 # define function(Ty)   (qualify(Ty, (1 << 5)))
-# define variadic(Ty)   (qualify(Ty, (1 << 6)))
+// # define variadic(Ty)   (qualify((Ty), (1 << 6)))
 # define constant(Ty)   (qualify(Ty, (1 << 7)))
 # define statical(Ty)   (qualify(Ty, (1 << 8)))
 # define register(Ty)   (qualify(Ty, (1 << 9)))
@@ -87,6 +93,8 @@ enum {
 # ifdef ORA_PROC
 #  define imaginary(Ty)  (qualify(Ty, (Ty.qualifier << 12)))
 # endif  /* ORA_PROC */
+
+// HERE(tconv)
 
 DEFTYPE(TType, sizeof(Type));
 
@@ -126,13 +134,15 @@ DEFTYPE(TFloat, sizeof(float));
 DEFTYPE(TDouble, sizeof(double));
 DEFTYPE(TChar, sizeof(char));
 DEFTYPE(TShort, sizeof(short int));
+DEFTYPE(TLong, sizeof(long int));
+DEFTYPE(TLongLong, sizeof(long long int));
 DEFTYPE(TInt, sizeof(int));
 
-DEFTYPE(TCChar, sizeof(char _Complex));
-DEFTYPE(TCShort, sizeof(short int _Complex));
-DEFTYPE(TCInt, sizeof(int _Complex));
-DEFTYPE(TCLong, sizeof(long int _Complex));
-DEFTYPE(TCLongLong, sizeof(long long int _Complex));
+REDEFTYPE(TCChar, complex(TChar));
+REDEFTYPE(TCShort, complex(TShort));
+REDEFTYPE(TCInt, complex(TInt));
+REDEFTYPE(TCLong, complex(TLong));
+REDEFTYPE(TCLongLong, complex(TLongLong));
 
 /* For type _Imaginary.  Only implemented by Oracle C compiler.
    https://en.cppreference.com/w/c/numeric/complex/imaginary */
@@ -164,9 +174,6 @@ DEFTYPE(TUIInt, sizeof(unsigned int _Imaginary));
 DEFTYPE(TUILong, sizeof(unsigned long int _Imaginary));
 DEFTYPE(TUILongLong, sizeof(unsigned long long int _Imaginary));
 # endif  /* ORA_PROC */
-
-int Type_Interpret(Type *inst, char const *restrict str_expr);
-int Type_Literalise(Type *inst, char const *buff);
 
 DEFSTATUS(TypeError, 1,
   "A Type replated error had occurred.",
@@ -214,18 +221,8 @@ DEFSTATUS(TypeImaginaryIsUnsupported, 1,
   STATUS_ERROR, &InvalidType);
 # endif  /* ORA_PROC */
 
-static inline bool Type_Equals(Type ty1, Type ty2)
-{
-  /* Returns true when either Type is NULL, regardless the nullities. */
-  if (!ty1.identifier) {
-    return (ty1.identifier == ty2.identifier);
-  }
-  
-  return (
-    (!strcmp(ty1.identifier, ty2.identifier)) &&
-    ty1.size == ty2.size &&
-    ty1.qualifier == ty2.qualifier
-  );
-}
+bool Type_Equals(Type ty1, Type ty2);
+int Type_Interpret(const Type ty, const char *expr);
+size_t Type_Literalise(const Type ty, char *buff);
 
 #endif  /* COMPOUND_TYPE_H */

@@ -1,100 +1,69 @@
-#include <Compound/common.h>
 #include <Compound/status.h>
 
-Status Location_Literalise(Location *inst, char *buff)
+size_t Location_Literalise(const Location inst, char *buff)
 {
-  nonull(inst, apply(UnavailableInstance));
-  nonull(buff, apply(UnavailableBuffer));
+  if (!buff)  return 0;
 
-  where(
-    snprintf(buff, LITERALISATION_LENGTH_MAXIMUM,
-              LOCATION_LITERALISE_FORMAT, inst->file, inst->line, inst->func),
-    return apply(value(TraditionalFunctionReturn, _));
-  );
-  
-  return apply(NormalStatus);
+  return snprintf(buff, LITERALISATION_LENGTH_MAXIMUM,
+      LOCATION_LITERALISE_FORMAT, inst.file, inst.line, inst.func);
 }
 
-bool Location_Equal(Location *lc1, Location *lc2)
+bool Location_Equal(const Location loc1, const Location loc2)
 {
-  state(lc1 == NULL || lc2 == NULL, false);
-
-  return ((!strcmp(lc1->file, lc2->file)) && (lc1->line == lc2->line) &&
-          (!strcmp(lc1->func, lc2->func)));
-}
-
-bool Status_Equal(Status *stat1, Status *stat2)
-{
-  state(stat1 == NULL || stat2 == NULL, false);
-
   return (
-    !strcmp(stat1->identity, stat2->identity) &&
-    stat1->value == stat2->value &&
-    !strcmp(stat1->description, stat2->description) &&
-    stat1->characteristic == stat2->characteristic &&
-    Location_Equal(&stat1->loc, &stat2->loc) &&
-    stat1->prev == stat2->prev
+    !strcmp(loc1.file, loc2.file)
+      && (loc1.line == loc2.line)
+      && (!strcmp(loc1.func, loc2.func))
   );
 }
 
-Status Status_Register(Status *inst, Status *buff)
+bool Status_Equal(const Status stat1, const Status stat2)
 {
-  /* Skip unavailable instance and parameters. */
-  nonull(inst, apply(annot(UnavailableInstance,
-    "Given instance for registration was unavailable.")));
-  nonull(buff, apply(annot(UnavailableParameter,
-    "Given buffer for storing registry was unavailable.")));
-
-  // TODO(william):  finish this function.
-
-  return apply(NormalStatus);
+  return (
+    !strcmp(stat1.identity, stat2.identity)
+      && stat1.value == stat2.value
+      && !strcmp(stat1.description, stat2.description)
+      && stat1.characteristic == stat2.characteristic
+      && Location_Equal(stat1.loc, stat2.loc)
+      && stat1.prev == stat2.prev
+  );
 }
 
-Status Status_Literalise(Status *inst, char *buff)
+bool Status_Match(const Status stat1, const Status stat2)
 {
-  /* Skip unavailable instance and invalid parameter. */
-  nonull(inst, apply(UnavailableInstance));
-  nonull(buff, apply(UnavailableBuffer));
+  if (!stat1.identity || !stat2.identity)  return false;
 
-  /* Literalise loc. */
-  // char loc_buff[LITERALISATION_LENGTH_MAXIMUM] = EMPTY;
-  // (void)printf("%s\n", loc_buff);
-  // unsure(Location_Literalise(&inst->loc, loc_buff), !_.value, {
-  //   (void)printf("failed on loc liter.\n");
-  //   return apply(_);
-  // });
+  return (!strcmp(stat1.identity, stat2.identity));
+}
+
+bool Status_Belong(const Status stat1, const Status stat2)
+{
+  /* Get last Status from @stat. */
+  Status last = stat1;
+  while (StatusUtils_HasPrev(last)) {
+    last = *last.prev;
+  }
+
+  return Status_Match(stat2, last);
+}
+
+size_t Status_Literalise(const Status inst, char *buff)
+{
+  if (!buff)  return 0;
+
   char loc_buff[LITERALISATION_LENGTH_MAXIMUM] = EMPTY;
-  zero(Location_Literalise(&inst->loc, loc_buff).value,
-    return apply(annot(NoBytesWereWritten, ""));
-  );
 
-  /* Styling output. */
-  // TODO(william): Replace following lines with 
-  // const char *fmt;
-  // if (inst->characteristic == STATUS_ERROR) {
-  //   // TODO(william): Replace following line with coloured-term-output function.
-  //   fmt = "\e[38;5;9m\e[1m"STATUS_LITERALISE_FORMAT"\e[0m";
-  // } else if (inst->characteristic == STATUS_UNKNOWN) {
-  //   // TODO(william): Replace following line with coloured-term-output function.
-  //   fmt = "\e[38;5;11m"STATUS_LITERALISE_FORMAT"\e[0m";
-  // } else {
-  //   // TODO(william): Replace following line with coloured-term-output function.
-  //   fmt = "\e[38;5;10m"STATUS_LITERALISE_FORMAT"\e[0m";
-  // }
-
-  /* Concatenate every buffer. */
-  where(
-    snprintf(buff, LITERALISATION_LENGTH_MAXIMUM, STATUS_LITERALISE_FORMAT,
-             inst->identity, inst->description,
-             (!inst->prev ? "(null)" : (inst->prev->identity)),
-             inst->value, inst->characteristic, loc_buff), {
-    return apply(value(TraditionalFunctionReturn, _));
-  });
+  return (Location_Literalise(inst.loc, loc_buff) +
+    snprintf(buff, LITERALISATION_LENGTH_MAXIMUM,
+        STATUS_LITERALISE_FORMAT, inst.identity,
+        inst.description,
+        (!inst.prev ? "(null)" : (inst.prev->identity)),
+        inst.value, inst.characteristic, loc_buff));
 }
 
 bool StatusUtils_HasPrev(Status stat)
 {
-  return (stat.prev != NULL);
+  return (stat.prev != NULL && !StatusUtils_IsRecursive(stat));
 }
 
 bool StatusUtils_IsOkay(Status stat)
@@ -104,29 +73,28 @@ bool StatusUtils_IsOkay(Status stat)
 
 bool StatusUtils_IsRecursive(Status stat)
 {
-  // return (stat.prev && stat.prev == stat.prev->prev);
-  return (stat.prev && Status_Equal(&stat, stat.prev));
+  return (
+    stat.prev && Status_Equal(stat, (!stat.prev ? (Status)EMPTY : *stat.prev))
+  );
 }
 
-void StatusUtils_Dump(Status *inst, Status *store)
+void StatusUtils_Dump(const Status inst, Status *store)
 {
   /* Skip when store is unavailable, or, inst is unavailable,
      recursive or does not have any predecessor. */
-  svoid(!inst || !store
-        || StatusUtils_IsRecursive(*inst) || !StatusUtils_HasPrev(*inst));
+  svoid(
+    !store || StatusUtils_IsRecursive(inst) || !StatusUtils_HasPrev(inst)
+  );
   
-  *store = *inst->prev;
+  *store = *inst.prev;
 }
 
-int StatusUtils_Depth(Status *stat)
+int StatusUtils_Depth(const Status stat)
 {
-  /* Skip unavailable stat. */
-  state((!stat || !stat->prev), -1);
-
   /* Set up counter. */
   int cnt = 1;
   /* Set up current status indication representor. */
-  Status current = *stat;
+  Status current = stat;
   /* Iterate to accumulate. */
   while (current.prev) {
     /* Skip recursive status. */
@@ -138,12 +106,3 @@ int StatusUtils_Depth(Status *stat)
 
   return cnt;
 }
-
-// bool arguestarter_equal(ArgueStarter *inst1, ArgueStarter *inst2)
-// {
-//   /* Skip when either inst1 or inst2 is unavailable. */
-//   state(inst1 == NULL || inst2 == NULL, false);
-
-//   return (inst1->argue_start == inst2->argue_start)
-//           || (inst1->external_param == inst2->external_param);
-// }

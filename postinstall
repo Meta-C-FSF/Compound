@@ -7,5 +7,4 @@ fi
 
 # Install Compound library.
 echo "Installing libcompound:"
-cp -v "out/libcompound.so" "/usr/lib"
-
+cp -v "bin/libcompound.so" "/usr/lib"
