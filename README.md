@@ -2,7 +2,8 @@
 
 Compound makes C more secure, and handy.  
 
-Compound is also recently getting developed with its Object-Oriented Programming functions.  
+Compound is also recently getting developed with its Object-Oriented Programming
+functionalities.  
 
 By the time, we've finished several things that worth mentioning.  
 
@@ -14,7 +15,8 @@ Such as:
      Of which you can use it to release heap addresses automatically.  
 
   - `Status`  
-     Functions which returns `Status` can be gracefully handled and examined for potential errors.  
+     Functions which returns `Status` can be gracefully handled and examined for
+     potential errors.  
 
 Comming up, we have OOP support, as mentioned before:  
   - `Class`  
@@ -51,25 +53,26 @@ int main(void)
   return 0;
 }
 ```
-Yes, you may need using macros to express quickly and gracefully.  
+Yes, you may need to use macros to express quickly and gracefully.  
 
 And with further development, implementing polymorphisms is possible.  
 
-But for now, we're concentrating on solving the "Type Reflecting" system.  
-And if you happen to have experiences on this, we will definitely welcome to
-join the team.  
+But for now, we're concentrating on solving the "Type Reflecting" system.
+And if you happen to have such experiences, we sincerely welcome you to give us
+a hand.  
 
----
-## Building
+## Building & Installing (GNU/Linux)
 ```shell
-cmake build/ && make
-```
-
-## Installing
-```shell
+# You will have to install headers before building the project.
 ./preinstall   # May need root privilege.
+
+cmake && make
+
+# Then, you will also need to install freshly built library into your system.
 ./postinstall  # May need root privilege.
 ```
+
+> We need installation instructions for MacOS and MS/Windows.
 
 ## Platform specifications  
 
@@ -80,5 +83,6 @@ As for MS/Windows building, we current need someone familiar with Windows
 building system to write the responding `CMakeLists`.
 
 In conclusion, Compound is now only tested on GNU/Linux, which runs just well.
-As for MacOS, technically able to run as fine as well.
+As for MacOS, technically able to run as fine as well, with a little adjustment
+on installation of course.
 
