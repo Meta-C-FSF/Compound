@@ -10,17 +10,17 @@ set(CMAKE_C_COMPILER  clang)
 add_compile_options(-g -std=c99 -Wall -Wextra -D__DEBUG__)
 
 set(SHARED_SOURCE
-  src/array.c
-  src/catlog.c
+  # src/array.c
+  # src/catlog.c
   # src/class.c
   # src/class_register.c
   # src/format.c
-  src/memory.c
-  src/memory_stack.c
-  src/stack.c
-  src/status.c
-  src/status_stack.c
-  src/type.c
+  # src/memory.c
+  # src/memory_stack.c
+  # src/stack.c
+  # src/status.c
+  # src/status_stack.c
+  # src/type.c
 )
 
 set(LIBCOMPOUND_SOURCE ${SHARED_SOURCE})
