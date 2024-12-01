@@ -79,10 +79,10 @@ cmake && make
 Compound uses [LLVM/Clang](https://github.com/llvm/llvm-project) to compile, and
 uses [CMake](https://github.com/Kitware/CMake) to build.  
 
-As for MS/Windows building, we current need someone familiar with Windows
+As for MS/Windows building, we current need someone who's familiar with Windows
 building system to write the responding `CMakeLists`.
 
 In conclusion, Compound is now only tested on GNU/Linux, which runs just well.
 As for MacOS, technically able to run as fine as well, with a little adjustment
-on installation of course.
+on installation in addition, of course.
 
